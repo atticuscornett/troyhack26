@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Highlight Review</title>
+
+  <style>
+    /* 3 PANNEL */
+    .app {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 320px;
+      height: 100vh;
+    }
+
+    #filePanel,
+    #detailsPanel {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    #pdfPanel {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    #pdfContainer {
+      height: 100%;
+      overflow: auto;
+    }
+
+    /* PAGE STYLE */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #e5e7eb;
+    }
+
+    /* SIDE PANNELS */
+    #filePanel,
+    #detailsPanel {
+      background: white;
+    }
+
+    #filePanel {
+      border-right: 1px solid #cbd5e1;
+    }
+
+    #detailsPanel {
+      border-left: 1px solid #cbd5e1;
+    }
+
+    /* PDF BOX */
+    #pdfContainer {
+      height: calc(100vh - 110px);
+      padding: 16px;
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* FILE BUTTONS */
+    .file-item {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .file-item:hover {
+      background: #f1f5f9;
+    }
+
+    .file-item.selected {
+      background: #dbeafe;
+      border-color: #2563eb;
+    }
+
+    /* FILE STATUS */
+    .status {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .status.processed {
+      color: green;
+    }
+
+    .status.waiting {
+      color: #b45309;
+    }
+
+    .status.processing {
+      color: #2563eb;
+    }
+
+    /* IMPORT BUTTON */
+  #filePanel {
+    display: flex;
+   flex-direction: column;
+  }
+
+  #fileList {
+    flex: 1;
+   overflow-y: auto;
+  }
+
+  #importButton {
+    margin-top: 12px;
+    padding: 10px;
+   border: none;
+   background: #2563eb;
+   color: white;
+   cursor: pointer;
+  }
+    
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- LEFT PANEL -->
+    <aside id="filePanel">
+      <h2>Files</h2>
+      <div id="fileList"></div>
+
+      <!-- IMPORT FILE -->
+     <div id="importMessage"></div>
+
+     <input id="fileInput" type="file" accept=".pdf" hidden>
+
+     <button id="importButton" type="button">
+      Import PDF
+    </button>
+  </aside>
+
+    <!-- CENTER PDF PANEL -->
+    <section id="pdfPanel">
+      <h1 id="docTitle">Document Title</h1>
+      <div id="pdfContainer"></div>
+    </section>
+
+    <!-- RIGHT HIGHLIGHTS PANEL -->
+    <aside id="detailsPanel">
+      <h2>Highlights</h2>
+      <div id="highlightDetails"></div>
+    </aside>
+
+  </main>
+
+  <script>
+    // TTTEEEEMMMPPP FIIILLLEEESSS
+    // 
+    // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    const files = [
+      {
+        id: "report-001",
+        name: "Security Assessment.pdf",
+        status: "processed"
+      },
+      {
+        id: "report-002",
+        name: "Historical Analysis.pdf",
+        status: "waiting"
+      },
+      {
+        id: "report-003",
+        name: "Policy Memo.pdf",
+        status: "processing"
+      }
+    ];
+
+    // BUTTON DISPLAY FOR FILES
+    function renderFileList() {
+      // EMPTY LIST AREA
+      const list = document.getElementById("fileList");
+
+      // BUTTONS FOR TEMP ARRAY
+      list.innerHTML = files.map(file => {
+        return `
+          <button class="file-item" data-file-id="${file.id}">
+            ${file.name}
+            <span class="status ${file.status}">${file.status}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    renderFileList();
+
+    // FILE SELECT
+    function selectFile(fileId) {
+      const selectedFile = files.find(file => file.id === fileId);
+
+      // SELECTED BUTTON
+      document.querySelectorAll(".file-item").forEach(button => {
+        button.classList.remove("selected");
+      });
+
+      document
+        .querySelector(`[data-file-id="${fileId}"]`)
+        .classList.add("selected");
+
+      // UPDATE TITLE
+      document.getElementById("docTitle").textContent = selectedFile.name;
+
+      // PDF PLACEHOLDER
+      const pdfContainer = document.getElementById("pdfContainer");
+
+      if (selectedFile.status === "processed") {
+        pdfContainer.innerHTML = `
+          <p><strong>${selectedFile.name}</strong> is ready for review.</p>
+          <p>PDF will display here later.</p>
+        `;
+      } else {
+        pdfContainer.innerHTML = `
+          <p><strong>${selectedFile.name}</strong> is not ready yet.</p>
+          <p>Status: ${selectedFile.status}</p>
+        `;
+      }
+
+      // HIGHLIGHT PLACEHOLDER
+      document.getElementById("highlightDetails").innerHTML = `
+        <p>Select a highlight to see its details.</p>
+      `;
+    }
+
+    // FILE BUTTON CLICKS
+    document.querySelectorAll(".file-item").forEach(button => {
+      button.addEventListener("click", () => {
+        selectFile(button.dataset.fileId);
+      });
+    });
+  </script>
+</body>
+
+</html>
