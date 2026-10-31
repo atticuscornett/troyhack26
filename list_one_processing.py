@@ -21,10 +21,15 @@ def scan_file(pdf_file_name):
         sentence_endings = r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s'
         sentences = re.split(sentence_endings, page_text)
 
-        located_on_this_page += find_classified(sentences)
+        # Quick and dirty stage
+        located_on_this_page += find_classified(sentences, page_num)
+
+        located_flags += located_on_this_page
+
+    return located_flags
         
 
-def find_classified(sentences) -> list:
+def find_classified(sentences, page_num) -> list:
     # Get all the pieces in parentheses
     matches = []
     for sentence_num, sentence in enumerate(sentences):
@@ -41,11 +46,14 @@ def find_classified(sentences) -> list:
         for i in possible_classifiers:
             if i in classifiers:
                 print("Classifier found: " + i)
-                matches.append(sentence_num)
-
-
-    print("Not yet implemented")
-    return [{}]
+                matches.append({
+                    "text": sentences[sentence_num],
+                    "flag": "List 1 - Classified Information",
+                    "page": page_num,
+                    "color": "red",
+                    "explanation": "Detected classifier: " + i
+                })
+    return matches
 
 def find_protected_by_law(page_text):
     print("Not yet implemented")
@@ -71,4 +79,7 @@ def find_wells(page_text):
 def ai_confirm():
     print("Not yet implemented")
 
-scan_file("SPR-Test-001.pdf")
+
+if __name__ == "__main__":
+    file_name = input("File Name: ")
+    print(scan_file(file_name))
