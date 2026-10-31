@@ -7,6 +7,14 @@ import time
 
 located_flags: list[dict] = []
 
+from transformers import pipeline
+
+privacy_classifier = pipeline(
+    task="token-classification",
+    model="openai/privacy-filter",
+    aggregation_strategy="simple"
+)
+
 def scan_file(pdf_file_name):
     global located_flags
     doc = pymupdf.open(pdf_file_name)
@@ -31,6 +39,7 @@ def scan_file(pdf_file_name):
 
         # Quick and dirty stage
         located_on_this_page += find_classified(sentences, page_num)
+        located_on_this_page += find_personal_privacy(sentences, page_text, page_num)
 
         located_flags += located_on_this_page
 
@@ -83,8 +92,31 @@ def find_business_secrets(page_text):
 def find_internal_deliberations_legal_advice(page_text):
     print("Not yet implemented")
 
-def find_personal_privacy(page_text):
-    print("Not yet implemented")
+def find_personal_privacy(sentences, page_text, page_num):
+    # TODO: Compare with Presidio
+
+
+    sentence_index = 0
+    sentence_start_points=[]
+    for sentence in sentences:
+        sentence_start_points.append(sentence_index)
+        sentence_index += len(sentence)
+
+    global privacy_classifier
+    pii_found = privacy_classifier(page_text)
+
+    last_end = -99
+    
+    # for chunk_list in pii_found:
+    #     chunk_assembler = ""
+    chunk_assembler = ""
+    for chunk in pii_found:
+        chunk_assembler += chunk["word"]
+        print("PII chunk: " + chunk_assembler)
+        
+
+    return []
+
 
 def find_law_enforcement_records(page_text):
     print("Not yet implemented")
