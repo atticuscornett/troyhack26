@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Highlight Review</title>
+
+  <style>
+    /* 3 PANNEL */
+    .app {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 320px;
+      height: 100vh;
+    }
+
+    #filePanel,
+    #detailsPanel {
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    #pdfPanel {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    #pdfContainer {
+      height: 100%;
+      overflow: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- LEFT PANEL -->
+    <aside id="filePanel">
+      <h2>Files</h2>
+      <div id="fileList"></div>
+    </aside>
+
+    <!-- CENTER PDF PANEL -->
+    <section id="pdfPanel">
+      <h1 id="docTitle">Document Title</h1>
+      <div id="pdfContainer"></div>
+    </section>
+
+    <!-- RIGHT HIGHLIGHTS PANEL -->
+    <aside id="detailsPanel">
+      <h2>Highlights</h2>
+      <div id="highlightDetails"></div>
+    </aside>
+
+  </main>
+
+  <script>
+    // Temporary file data.
+    // Python will return this kind of information later.
+    const files = [
+      {
+        id: "report-001",
+        name: "Security Assessment.pdf",
+        status: "processed"
+      },
+      {
+        id: "report-002",
+        name: "Historical Analysis.pdf",
+        status: "waiting"
+      },
+      {
+        id: "report-003",
+        name: "Policy Memo.pdf",
+        status: "processing"
+      }
+    ];
+
+    // BUTTON DISPLAY FOR FILES
+    function renderFileList() {
+      // EMPTY LIST AREA
+      const list = document.getElementById("fileList");
+
+      // BUTTONS FOR TEMP ARRAY
+      list.innerHTML = files.map(file => {
+        return `
+          <button class="file-item" data-file-id="${file.id}">
+            ${file.name}
+            <span class="status ${file.status}">${file.status}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    renderFileList();
+  </script>
+</body>
+
+</html>
