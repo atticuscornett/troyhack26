@@ -5,6 +5,7 @@ import re
 import json
 import time
 import bisect
+from typing import cast
 
 
 located_flags: list[dict] = []
@@ -36,7 +37,8 @@ def scan_file(pdf_file_name):
     for page in doc:
         located_on_this_page = []
         page_num += 1
-        page_text = page.get_text()
+        
+        page_text = cast(str, page.get_text("text"))
 
         print("Processing page " + str(page_num) + "...")
         page_time_start = time.perf_counter()
@@ -44,6 +46,14 @@ def scan_file(pdf_file_name):
         # Split into individual sentences (for highlighting)
         sentence_endings = r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s'
         sentences = re.split(sentence_endings, page_text)
+
+        for index, sentence in enumerate(sentences):
+            if len(sentence) < 35:
+                # Combine short sentences with the next one
+                if index + 1 < len(sentences):
+                    sentences[index + 1] = sentence + " " + sentences[index + 1]
+                    # Remove the current short sentence from the list
+                    sentences[index] = ""
 
         located_on_this_page += find_classified(sentences, page_num)
         located_on_this_page += find_protected_by_law(sentences, page_num)

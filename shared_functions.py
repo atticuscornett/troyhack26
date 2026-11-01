@@ -1,5 +1,6 @@
 import os
-SKIP_LLM = os.getenv("SKIP_LLM") == "1"
+# SKIP_LLM = os.getenv("SKIP_LLM") == "1"
+SKIP_LLM = True  # Set to True to skip LLM semantic analysis for testing purposes
 
 #OLLAMA_MODEL = "gemma4:12b"
 OLLAMA_MODEL = "qwen3.5:4b"
