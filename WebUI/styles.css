@@ -86,6 +86,24 @@ body {
   border-color: #2563eb;
 }
 
+.file-item.accepted {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+
+.file-item.denied {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+.file-item.accepted:hover {
+  background: #bbf7d0;
+}
+
+.file-item.denied:hover {
+  background: #fecaca;
+}
+
 /* FILE STATUS */
 .status {
   display: block;

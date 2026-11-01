@@ -151,6 +151,31 @@ def locate_issue_rectangles(document, issue):
     return rectangles, "available" if rectangles else "unavailable"
 
 
+def deduplicate_issues(issues):
+    """KEEP ONE ISSUE PER PAGE/TEXT, PREFERRING RED OVER YELLOW."""
+    selected = {}
+
+    def severity(issue):
+        color = str(issue.get("color", "")).lower()
+        return {"red": 2, "yellow": 1}.get(color, 0)
+
+    for index, issue in enumerate(issues):
+        text = issue.get("text")
+        normalized_text = " ".join(str(text).casefold().split()) if text is not None else ""
+
+        # Do not combine issues that have no usable text to compare.
+        if not normalized_text:
+            selected[("unmatched", index)] = (index, issue)
+            continue
+
+        key = (str(issue.get("page")), normalized_text)
+        current = selected.get(key)
+        if current is None or severity(issue) > severity(current[1]):
+            selected[key] = (index, issue)
+
+    return [issue for _, issue in sorted(selected.values(), key=lambda item: item[0])]
+
+
 # SERVE PDF.JS MODULE
 @web_app.get("/vendor/pdfjs/<asset_name>")
 def serve_pdfjs_module(asset_name):
@@ -271,7 +296,7 @@ def get_processing_statuses():
     for status in statuses:
         path = status.get("filePath")
         if status.get("processState") == "processed" and path:
-            issues = status.get("issues", [])
+            issues = deduplicate_issues(status.get("issues", []))
             # HANDLE DISPATCH RACE
             # REFRESH ISSUE CACHE
             fingerprint = repr(issues)

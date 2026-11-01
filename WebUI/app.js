@@ -197,7 +197,7 @@ function renderFileList() {
   // BUTTONS FOR TEMP ARRAY
   list.innerHTML = files.map(file => {
     return `
-      <button class="file-item${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
+      <button class="file-item ${file.status}${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
         ${file.name}
         <span class="status ${file.status}">${file.status}</span>
       </button>
