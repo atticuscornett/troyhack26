@@ -48,9 +48,11 @@ def scan_file(pdf_file_name):
         located_on_this_page += find_classified(sentences, page_num)
         located_on_this_page += find_protected_by_law(sentences, page_num)
         located_on_this_page += find_business_secrets(sentences, page_num)
-
-        located_on_this_page += find_personal_privacy(page_text, page_num)
         located_on_this_page += find_internal_deliberations_legal_advice(sentences, page_num)
+        located_on_this_page += find_personal_privacy(page_text, page_num)
+        located_on_this_page += find_law_enforcement_records(page_text)
+        located_on_this_page += find_financial_regulation(page_text)
+        located_on_this_page += find_wells(page_text)
 
         located_flags += located_on_this_page
 
@@ -279,17 +281,17 @@ def find_personal_privacy(page_text, page_num):
     # Return the values of the dictionary as a list
     return cleaned_pii_issues.values()
 
-def find_law_enforcement_records(page_text):
-    keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
+def find_law_enforcement_records(page_text, page_num):
+    keywords = ["case file", "investigation", "criminal", "law enforcement", "arrest", "warrant", "suspect", "conviction", "prosecution"]
     
-    semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
+    semantic_matches = sf.find_similar_sentences(sentences, "A law enforcement agency is investigating a criminal case and has records related to the investigation.")
     filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
     
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
         issues.append({
             "text": sentence,
-            "flag": "List 1 - Internal Deliberation or Legal Advice",
+            "flag": "List 1 - Law Enforcement Records",
             "page": page_num,
             "color": "red",
             "explanation": filtered_semantic_matches[1][index]
@@ -299,16 +301,28 @@ def find_law_enforcement_records(page_text):
 
 def find_financial_regulation(page_text):
     print("Not yet implemented")
+    return []
 
 def find_wells(page_text):
-    print("Not yet implemented")
+    keywords = ["well", "wells", "oil well", "gas well", "drilling", "hydraulic fracturing", "fracking", "oilfield", "oil field", "gas field"]
+        
+        semantic_matches = sf.find_similar_sentences(sentences, "A document discusses water, oil, and gas wells, including drilling, hydraulic fracturing, surveys, and related operations.")
+        filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
+        
+        issues = []
+        for index, sentence in enumerate(filtered_semantic_matches[0]):
+            issues.append({
+                "text": sentence,
+                "flag": "List 1 - Wells",
+                "page": page_num,
+                "color": "red",
+                "explanation": filtered_semantic_matches[1][index]
+            })
+            
+        return issues
 
 def ai_confirm():
     print("Not yet implemented")
-
-
-
-
 
 if __name__ == "__main__":
     file_name = input("File Name: ")
