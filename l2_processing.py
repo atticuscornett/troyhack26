@@ -46,7 +46,7 @@ def scan_file(pdf_file_name):
 def find_keyword(sentences, page_num) -> list:
     # Get all the pieces in parentheses
     matching_sentences = []
-    keywords = ["animal testing", "directed energy", "weapon", "physiologic", "oxygen", "hypobaria", "hypopoxia", "aerial", "unamanned", "space", "laser", "research", "particle",
+    keywords = ["animal testing", "directed energy", "weapon", "cyber", "physiologic", "oxygen", "hypobaria", "hypopoxia", "aerial", "unamanned", "space", "laser", "research", "particle",
               "operation", "exercise", "security", "chemical", "biological", "toxin", "current", "vulnerability", "training", "air", "tactics", "procedures", "deploy", "washington", "national", "international", "president", "secretary",
               "foreign", "dod", "data", "information", "traffic", "dopsr", "wing", "unit", "sensitive", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
 
@@ -90,22 +90,83 @@ def find_weapons(sentences, page_num):
 
 def find_cyber(sentences, page_num):
     condition = "Does the text discuss cybersecurity, intelligence, and operational security?"
-    keywords = []
+    keywords = ["cyber", "traffic", "data", "vulnerabilities", "detail", "description"]
 
+    print("Finding similar sentences to 'cybersecurity, intelligence, and operational security':")
+    semantic_matches = sf.find_similar_sentences(sentences, condition)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 2 - Cybersecurity, Intelligence, and Operational Security",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": filtered_semantic_matches[1][index]
+        })
 
 def find_medical(sentences, page_num):
     condition = "Does the text discuss medical, physiological, chemical, and biological research?"
-    keywords = []
-
+    keywords = ["physiologic", "oxygen", "research", "hypobaria", "hypopoxia", "chemical", "biological", "toxin", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
+    
+    print("Finding similar sentences to 'medical, physiological, chemical, and biological research':")
+    semantic_matches = sf.find_similar_sentences(sentences, condition)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 2 - Medical, Physiological, Chemical, and Biological Reseatrch",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": filtered_semantic_matches[1][index]
+        })
 
 def find_policy(sentences, page_num):
     condition = "Does the text discuss national security, policy, and sensitive government information?"
-    keywords = []
+    keywords = ["operation", "dopsr", "exercise", "security", "current", "training", "tactics", "procedures", "deploy", "wing", "unit", "sensitive"]
 
+    print("Finding similar sentences to 'national security, policy, and sensitive government information':")
+    semantic_matches = sf.find_similar_sentences(sentences, condition)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+        
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": filtered_semantic_matches[1][index]
+        })
 
 def find_inter(sentences, page_num):
     condition = "Does the text discuss interagency and interservice coordination?"
-    keywords = []
+    keywords = ["washington", "national", "international", "president", "secretary", "dod", ]
+
+    print("Finding similar sentences to 'national security, policy, and sensitive government information':")
+    semantic_matches = sf.find_similar_sentences(sentences, condition)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+            
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": filtered_semantic_matches[1][index]
+        })
     
     
 if __name__ == "__main__":
