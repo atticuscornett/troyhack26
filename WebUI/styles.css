@@ -30,6 +30,10 @@
 }
 
 #detailsPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   border-left: 1px solid #cbd5e1;
 }
 
@@ -110,6 +114,14 @@ body {
   color: #dc2626;
 }
 
+.status.accepted {
+  color: #15803d;
+}
+
+.status.denied {
+  color: #dc2626;
+}
+
 /* IMPORT BUTTON */
 #fileList {
   flex: 1;
@@ -127,14 +139,72 @@ body {
 
 /* ISSUE DETAILS */
 .issue-item {
+  position: relative;
   margin-bottom: 12px;
-  padding: 10px;
+  padding: 10px 36px 10px 10px;
   border-left: 4px solid #ef4444;
   background: #fef2f2;
 }
 
 .issue-item p {
   margin: 0 0 6px;
+}
+
+.dismiss-issue {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.dismiss-issue:hover,
+.dismiss-issue:focus-visible {
+  background: #fecaca;
+}
+
+#highlightDetails {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#reviewActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #cbd5e1;
+}
+
+#reviewActions button {
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#acceptButton {
+  background: #15803d;
+}
+
+#rejectButton {
+  background: #b91c1c;
+}
+
+#reviewActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* PDF PAGE AND HIGHLIGHT OVERLAY */

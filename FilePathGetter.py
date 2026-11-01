@@ -28,6 +28,8 @@ web_app = Bottle()
 # OPEN DOCUMENTS
 open_documents = {}
 located_issues = {}
+dismissed_issues = {}
+review_statuses = {}
 import_statuses = {}
 
 # CONVERSION QUEUE
@@ -75,6 +77,8 @@ def process_docx_import(import_id, source_path):
         pdf_path = convert_docx_file(source_path)
         file_path = str(pdf_path)
         located_issues.pop(file_path, None)
+        dismissed_issues.pop(file_path, None)
+        review_statuses.pop(file_path, None)
 
         # URL
         document_id = secrets.token_urlsafe(24)
@@ -230,6 +234,8 @@ def import_pdfs():
         pdf_path = source_path
         file_path = str(pdf_path)
         located_issues.pop(file_path, None)
+        dismissed_issues.pop(file_path, None)
+        review_statuses.pop(file_path, None)
 
         # URL
         document_id = secrets.token_urlsafe(24)
@@ -264,29 +270,60 @@ def get_processing_statuses():
     statuses = copy.deepcopy(get_file_statuses())
     for status in statuses:
         path = status.get("filePath")
-        if status.get("processState") != "processed" or not path:
-            continue
-        issues = status.get("issues", [])
-        # HANDLE DISPATCH RACE
-        # REFRESH ISSUE CACHE
-        fingerprint = repr(issues)
-        cached = located_issues.get(path)
-        if cached is None or cached[0] != fingerprint:
-            enriched = []
-            try:
-                with pymupdf.open(path) as document:
-                    for index, issue in enumerate(issues):
-                        result = dict(issue, id=f"issue-{index}", rectangles=[], location="unavailable")
-                        rectangles, location = locate_issue_rectangles(document, issue)
-                        result["rectangles"] = rectangles
-                        result["location"] = location
-                        enriched.append(result)
-            except Exception as error:
-                print(f"Could not locate issues in {path}: {error}")
-                enriched = [dict(issue, id=f"issue-{index}", rectangles=[], location="unavailable") for index, issue in enumerate(issues)]
-            located_issues[path] = (fingerprint, enriched)
-        status["issues"] = located_issues[path][1]
+        if status.get("processState") == "processed" and path:
+            issues = status.get("issues", [])
+            # HANDLE DISPATCH RACE
+            # REFRESH ISSUE CACHE
+            fingerprint = repr(issues)
+            cached = located_issues.get(path)
+            if cached is None or cached[0] != fingerprint:
+                # A new processing result gets a new set of dismissible issues.
+                if cached is not None:
+                    dismissed_issues.pop(path, None)
+                enriched = []
+                try:
+                    with pymupdf.open(path) as document:
+                        for index, issue in enumerate(issues):
+                            result = dict(issue, id=f"issue-{index}", rectangles=[], location="unavailable")
+                            rectangles, location = locate_issue_rectangles(document, issue)
+                            result["rectangles"] = rectangles
+                            result["location"] = location
+                            enriched.append(result)
+                except Exception as error:
+                    print(f"Could not locate issues in {path}: {error}")
+                    enriched = [dict(issue, id=f"issue-{index}", rectangles=[], location="unavailable") for index, issue in enumerate(issues)]
+                located_issues[path] = (fingerprint, enriched)
+            dismissed_ids = dismissed_issues.get(path, set())
+            status["issues"] = [
+                issue for issue in located_issues[path][1]
+                if issue["id"] not in dismissed_ids
+            ]
+
+        if path in review_statuses:
+            status["processState"] = review_statuses[path]
     return statuses
+
+
+# DISMISS A FLAGGED ISSUE
+@eel.expose
+def dismiss_issue(file_path, issue_id):
+    """HIDE A DISMISSED ISSUE AND ITS PDF HIGHLIGHT."""
+    if not isinstance(file_path, str) or not isinstance(issue_id, str):
+        return False
+
+    dismissed_issues.setdefault(file_path, set()).add(issue_id)
+    return True
+
+
+# SAVE FILE REVIEW DECISION
+@eel.expose
+def set_review_status(file_path, review_status):
+    """PERSIST AN ACCEPTED OR DENIED FILE REVIEW STATUS."""
+    if not isinstance(file_path, str) or review_status not in {"accepted", "denied"}:
+        return False
+
+    review_statuses[file_path] = review_status
+    return True
 
 # RENDER PDF PAGES
 @eel.expose

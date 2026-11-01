@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>PDF Highlight Review</title>
 
-  <link rel="stylesheet" href="styles.css?v=highlights-7">
+  <link rel="stylesheet" href="styles.css?v=highlights-9">
 </head>
 
 <body>
@@ -34,13 +34,17 @@
     <aside id="detailsPanel">
       <h2>Highlights</h2>
       <div id="highlightDetails"></div>
+      <div id="reviewActions">
+        <button id="acceptButton" type="button" data-review-status="accepted" disabled>Accept</button>
+        <button id="rejectButton" type="button" data-review-status="denied" disabled>Reject</button>
+      </div>
     </aside>
 
   </main>
 
   <script type="text/javascript" src="/eel.js"></script>
 
-  <script src="app.js?v=highlights-6"></script>
+  <script src="app.js?v=highlights-8"></script>
 </body>
 
 </html>

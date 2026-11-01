@@ -131,6 +131,7 @@ function renderHighlightDetails(file) {
   details.innerHTML = issues.map(issue => {
     return `
       <article class="issue-item" data-issue-id="${escapeHtml(issue.id || "")}" data-location="${escapeHtml(issue.location || "unavailable")}">
+        <button class="dismiss-issue" type="button" aria-label="Dismiss highlight" title="Dismiss highlight">&times;</button>
         <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
@@ -139,8 +140,32 @@ function renderHighlightDetails(file) {
   }).join("");
 }
 
-// FOCUS FLAG HIGHLIGHT
+function updateReviewActions(file) {
+  const canReview = file?.status === "processed";
+  document.querySelectorAll("[data-review-status]").forEach(button => {
+    button.disabled = !canReview;
+  });
+}
+
+// FOCUS OR DISMISS FLAG HIGHLIGHT
 document.getElementById("highlightDetails").addEventListener("click", event => {
+  const dismissButton = event.target.closest(".dismiss-issue");
+  if (dismissButton) {
+    const issueCard = dismissButton.closest(".issue-item[data-issue-id]");
+    const selectedFile = files.find(file => file.id === selectedFileId);
+    if (!issueCard || !selectedFile?.path) return;
+
+    const issueId = issueCard.dataset.issueId;
+    selectedFile.issues = (selectedFile.issues || []).filter(issue => issue.id !== issueId);
+    renderHighlightDetails(selectedFile);
+    drawHighlights(selectedFile);
+
+    eel.dismiss_issue(selectedFile.path, issueId)().catch(error => {
+      console.error("Could not dismiss highlight.", error);
+    });
+    return;
+  }
+
   const issueCard = event.target.closest(".issue-item[data-issue-id]");
   if (!issueCard || issueCard.dataset.location === "unavailable") return;
 
@@ -172,7 +197,7 @@ function renderFileList() {
   // BUTTONS FOR TEMP ARRAY
   list.innerHTML = files.map(file => {
     return `
-      <button class="file-item" data-file-id="${file.id}">
+      <button class="file-item${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
         ${file.name}
         <span class="status ${file.status}">${file.status}</span>
       </button>
@@ -194,7 +219,7 @@ async function refreshFileStatuses() {
       const file = files.find(item => item.importId === importStatus.importId);
       if (!file) return;
 
-      const canUpdateStatus = importStatus.state !== "processing" || file.status !== "processed";
+      const canUpdateStatus = !file.reviewStatus && (importStatus.state !== "processing" || file.status !== "processed");
       const statusChanged = canUpdateStatus && file.status !== importStatus.state;
       const documentReady = !file.documentUrl && importStatus.documentUrl;
 
@@ -220,14 +245,15 @@ async function refreshFileStatuses() {
 
       // SAVE ISSUES FROM JOB DISPATCH
       file.issues = Array.isArray(job.issues) ? job.issues : [];
-      const statusChanged = file.status !== job.processState;
+      const nextStatus = file.reviewStatus || job.processState;
+      const statusChanged = file.status !== nextStatus;
 
       if (statusChanged) {
-        file.status = job.processState;
+        file.status = nextStatus;
         listChanged = true;
 
         // MOVE COMPLETED FILE TO TOP
-        if (statusChanged && job.processState === "processed") {
+        if (job.processState === "processed" && nextStatus === "processed") {
           files.splice(files.indexOf(file), 1);
           files.unshift(file);
         }
@@ -245,6 +271,7 @@ async function refreshFileStatuses() {
     if (selected) {
       renderHighlightDetails(selected);
       drawHighlights(selected);
+      updateReviewActions(selected);
     }
   } catch (error) {
     console.error("Could not update file statuses.", error);
@@ -258,6 +285,7 @@ setInterval(refreshFileStatuses, 1000);
 async function selectFile(fileId) {
   const selectedFile = files.find(file => file.id === fileId);
   selectedFileId = fileId;
+  updateReviewActions(selectedFile);
 
   // SELECTED BUTTON
   document.querySelectorAll(".file-item").forEach(button => {
@@ -301,6 +329,32 @@ async function selectFile(fileId) {
   // SHOW FILE ISSUES
   renderHighlightDetails(selectedFile);
 }
+
+// ACCEPT OR REJECT THE REVIEWED FILE
+document.getElementById("reviewActions").addEventListener("click", async event => {
+  const button = event.target.closest("[data-review-status]");
+  const selectedFile = files.find(file => file.id === selectedFileId);
+  if (!button || !selectedFile?.path || selectedFile.status !== "processed") return;
+
+  const reviewStatus = button.dataset.reviewStatus;
+  selectedFile.reviewStatus = reviewStatus;
+  selectedFile.status = reviewStatus;
+  files.splice(files.indexOf(selectedFile), 1);
+  files.push(selectedFile);
+  renderFileList();
+  updateReviewActions(selectedFile);
+
+  try {
+    const saved = await eel.set_review_status(selectedFile.path, reviewStatus)();
+    if (!saved) throw new Error("Review status was not saved.");
+  } catch (error) {
+    console.error("Could not save review status.", error);
+    selectedFile.reviewStatus = null;
+    selectedFile.status = "processed";
+    renderFileList();
+    updateReviewActions(selectedFile);
+  }
+});
 
 // FILE BUTTON CLICKS
 document.getElementById("fileList").addEventListener("click", event => {
