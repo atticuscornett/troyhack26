@@ -1,8 +1,7 @@
 ollama
 pymupdf
 transformers
+eel
 
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch
-
-eel
