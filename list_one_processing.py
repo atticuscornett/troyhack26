@@ -95,6 +95,7 @@ def find_internal_deliberations_legal_advice(page_text):
 
 def find_personal_privacy(page_text, page_num):
     # TODO: Compare with Presidio
+    # TODO: Be influenced by the confidence value
 
     sentence_pattern = r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!])\s+"
 
@@ -145,7 +146,7 @@ def find_personal_privacy(page_text, page_num):
     # Add reasons to explanation and remove the reasons set from the final output
     for i in pii_issues:
         pii_issues[i]["explanation"] += ", ".join(pii_issues[i]["reasons"])
-        del pii_issues[i]["reasons"]       
+        del pii_issues[i]["reasons"]
 
     # Return the values of the dictionary as a list
     return pii_issues.values()
