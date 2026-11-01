@@ -25,7 +25,7 @@ function drawHighlights(file) {
     if (!viewport) return;
     (file.issues || []).filter(issue => Number(issue.page) === Number(layer.dataset.page)).forEach(issue => {
       (issue.rectangles || []).forEach(rect => {
-        // CONVERT VIEWPORT POINTS
+        // PDF TO VIEW
         const [x1, y1] = viewport.convertToViewportPoint(rect[0], rect[1]);
         const [x2, y2] = viewport.convertToViewportPoint(rect[2], rect[3]);
         const highlight = document.createElement('div');
@@ -42,12 +42,12 @@ function drawHighlights(file) {
   });
 }
 
-// RENDER PDF.JS DOCUMENT
+// RENDER PDF
 async function renderPdfDocument(documentUrl, pdfContainer) {
   const renderId = ++pdfRenderId;
   const pdfjsLib = await pdfjsLibPromise;
 
-  // PDF.JS WORKER
+  // PDF WORKER
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
     "./vendor/pdfjs/pdf.worker.min.mjs",
     window.location.href
@@ -64,7 +64,7 @@ async function renderPdfDocument(documentUrl, pdfContainer) {
   pdfContainer.innerHTML = "";
   pageViewports.clear();
 
-  // RENDER PDF PAGES
+  // PDF PAGES
   for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
     const page = await pdfDocument.getPage(pageNumber);
     if (renderId !== pdfRenderId) return;
@@ -104,7 +104,7 @@ async function renderPdfDocument(documentUrl, pdfContainer) {
   }
 }
 
-// DISPLAY SAFE TEXT
+// SAFE TEXT
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, character => {
     return {
@@ -117,7 +117,7 @@ function escapeHtml(value) {
   });
 }
 
-// SHOW FILE ISSUES
+// SHOW ISSUES
 function renderHighlightDetails(file) {
   const details = document.getElementById("highlightDetails");
   const issues = (file.issues || [])
@@ -139,10 +139,11 @@ function renderHighlightDetails(file) {
   }
 
   details.innerHTML = issues.map(issue => {
+    const flagColor = String(issue.color || "red").toLowerCase() === "yellow" ? "yellow" : "red";
     return `
-      <article class="issue-item" data-issue-id="${escapeHtml(issue.id || "")}" data-location="${escapeHtml(issue.location || "unavailable")}">
+      <article class="issue-item issue-${flagColor}" data-issue-id="${escapeHtml(issue.id || "")}" data-location="${escapeHtml(issue.location || "unavailable")}">
         <button class="dismiss-issue" type="button" aria-label="Dismiss highlight" title="Dismiss highlight">&times;</button>
-        <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
+        <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong> <span class="issue-flag">${flagColor.toUpperCase()} FLAG</span></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
       </article>
@@ -157,7 +158,7 @@ function updateReviewActions(file) {
   });
 }
 
-// FOCUS OR DISMISS FLAG HIGHLIGHT
+// MARK FOCUS
 document.getElementById("highlightDetails").addEventListener("click", event => {
   const dismissButton = event.target.closest(".dismiss-issue");
   if (dismissButton) {
@@ -199,12 +200,12 @@ document.getElementById("highlightDetails").addEventListener("click", event => {
   }, 1800);
 });
 
-// BUTTON DISPLAY FOR FILES
+// FILE LIST
 function renderFileList() {
-  // EMPTY LIST AREA
+  // FILE AREA
   const list = document.getElementById("fileList");
 
-  // BUTTONS FOR TEMP ARRAY
+  // FILE BTNS
   list.innerHTML = files.map(file => {
     return `
       <button class="file-item ${file.status}${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
@@ -217,7 +218,7 @@ function renderFileList() {
 
 renderFileList();
 
-// UPDATE FILE STATUSES
+// FILE STATUS
 async function refreshFileStatuses() {
   try {
     const importStatuses = await eel.get_import_statuses()();
@@ -253,7 +254,7 @@ async function refreshFileStatuses() {
         return;
       }
 
-      // SAVE ISSUES FROM JOB DISPATCH
+      // SAVE JOB ISSUES
       file.issues = Array.isArray(job.issues) ? job.issues : [];
       const nextStatus = file.reviewStatus || job.processState;
       const statusChanged = file.status !== nextStatus;
@@ -262,7 +263,7 @@ async function refreshFileStatuses() {
         file.status = nextStatus;
         listChanged = true;
 
-        // MOVE COMPLETED FILE TO TOP
+        // MOVE DONE FILE UP
         if (job.processState === "processed" && nextStatus === "processed") {
           files.splice(files.indexOf(file), 1);
           files.unshift(file);
@@ -289,7 +290,7 @@ async function refreshFileStatuses() {
   }
 }
 
-// CHECK STATUS EVERY SECOND
+// POLL STATUS
 setInterval(refreshFileStatuses, 1000);
 
 // FILE SELECT
@@ -299,7 +300,7 @@ async function selectFile(fileId) {
   updateReviewActions(selectedFile);
   updatePdfProcessingIndicator(selectedFile);
 
-  // SELECTED BUTTON
+  // SELECTED BTN
   document.querySelectorAll(".file-item").forEach(button => {
     button.classList.remove("selected");
   });
@@ -314,7 +315,7 @@ async function selectFile(fileId) {
   // PDF PANEL
   const pdfContainer = document.getElementById("pdfContainer");
 
-  // NO LOCAL PDF URL
+  // NO PDF URL
   if (!selectedFile.documentUrl) {
     const message = selectedFile.status === "error"
       ? selectedFile.error || "Could not convert DOCX."
@@ -327,22 +328,22 @@ async function selectFile(fileId) {
     return;
   }
 
-  // LOADING MESSAGE
+  // LOAD MSG
   pdfContainer.innerHTML = "<p>Loading PDF pages...</p>";
 
   try {
-    // SHOW PDF.JS PAGES
+    // SHOW PDF PAGES
     await renderPdfDocument(selectedFile.documentUrl, pdfContainer);
   } catch (error) {
     console.error(error);
     pdfContainer.innerHTML = "<p>Could not load PDF.</p>";
   }
 
-  // SHOW FILE ISSUES
+  // SHOW ISSUES
   renderHighlightDetails(selectedFile);
 }
 
-// ACCEPT OR REJECT THE REVIEWED FILE
+// SET FILE REVIEW
 document.getElementById("reviewActions").addEventListener("click", async event => {
   const button = event.target.closest("[data-review-status]");
   const selectedFile = files.find(file => file.id === selectedFileId);
@@ -368,7 +369,7 @@ document.getElementById("reviewActions").addEventListener("click", async event =
   }
 });
 
-// FILE BUTTON CLICKS
+// FILE BTNS
 document.getElementById("fileList").addEventListener("click", event => {
   const button = event.target.closest(".file-item");
 
@@ -387,7 +388,7 @@ importButton.addEventListener("click", async () => {
   importButton.disabled = true;
 
   try {
-    // GET DOCUMENT INFO FROM PYTHON
+    // GET IMPORT DATA
     const importedDocuments = await eel.import_pdfs()();
 
     // NO FILES

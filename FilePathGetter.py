@@ -38,21 +38,21 @@ conversion_queue = queue.Queue()
 # PDF.JS ASSETS
 PDFJS_FOLDER = PROJECT_FOLDER / "WebUI" / "vendor" / "pdfjs"
 
-# PDF PREVIEW FOLDER
+# PREVIEW DIR
 PREVIEW_FOLDER = PROJECT_FOLDER / "WebUI" / "pdf_previews"
 
-# GENERATED PDF FOLDER
+# PDF OUT DIR
 GENERATED_PDF_FOLDER = PROJECT_FOLDER / "generated_pdfs"
 
 
 def convert_docx_file(docx_path):
-    """CONVERT DOCX TO PDF."""
+    """DOCX TO PDF."""
     try:
         from docx2pdf import convert
     except ImportError as error:
         raise RuntimeError("DOCX conversion requires docx2pdf.") from error
 
-    # OUTPUT FOLDER
+    # OUT DIR
     GENERATED_PDF_FOLDER.mkdir(parents=True, exist_ok=True)
 
     # OUTPUT PATH
@@ -69,7 +69,7 @@ def convert_docx_file(docx_path):
 
 
 def process_docx_import(import_id, source_path):
-    """CONVERT AND START DOCX IMPORT."""
+    """START DOCX JOB."""
     import_statuses[import_id]["state"] = "converting"
 
     try:
@@ -99,7 +99,7 @@ def process_docx_import(import_id, source_path):
 
 
 def run_conversion_queue():
-    """RUN DOCX CONVERSIONS."""
+    """RUN DOCX QUEUE."""
     while True:
         import_id, source_path = conversion_queue.get()
         try:
@@ -113,7 +113,7 @@ threading.Thread(target=run_conversion_queue, daemon=True).start()
 
 
 def locate_issue_rectangles(document, issue):
-    """LOCATE ISSUE RECTANGLES."""
+    """FIND ISSUE RECTS."""
     try:
         page_number = int(issue.get("page"))
     except (TypeError, ValueError):
@@ -123,7 +123,7 @@ def locate_issue_rectangles(document, issue):
     if not 1 <= page_number <= len(document) or not isinstance(text, str):
         return [], "unavailable"
 
-    # NORMALIZE MATCH TEXT
+    # MATCH TEXT
     needle = " ".join(text.split())
     if not needle:
         return [], "unavailable"
@@ -131,7 +131,7 @@ def locate_issue_rectangles(document, issue):
     page = document[page_number - 1]
     try:
         found = page.search_for(needle)
-        # RETRY ORIGINAL TEXT
+        # RETRY RAW TEXT
         if not found and needle != text:
             found = page.search_for(text)
     except Exception as error:
@@ -141,7 +141,7 @@ def locate_issue_rectangles(document, issue):
     rectangles = []
     seen = set()
     for rect in found:
-        # CONVERT PDF COORDINATES
+        # PDF TO VIEW
         pdf_rect = rect * ~page.transformation_matrix
         values = tuple(round(value, 4) for value in pdf_rect)
         if values not in seen:
@@ -152,7 +152,7 @@ def locate_issue_rectangles(document, issue):
 
 
 def deduplicate_issues(issues):
-    """KEEP ONE ISSUE PER PAGE/TEXT, PREFERRING RED OVER YELLOW."""
+    """KEEP TOP ISSUE PER TEXT."""
     selected = {}
 
     def severity(issue):
@@ -163,7 +163,7 @@ def deduplicate_issues(issues):
         text = issue.get("text")
         normalized_text = " ".join(str(text).casefold().split()) if text is not None else ""
 
-        # Do not combine issues that have no usable text to compare.
+        # EMPTY ISSUES
         if not normalized_text:
             selected[("unmatched", index)] = (index, issue)
             continue
@@ -176,7 +176,7 @@ def deduplicate_issues(issues):
     return [issue for _, issue in sorted(selected.values(), key=lambda item: item[0])]
 
 
-# SERVE PDF.JS MODULE
+# SERVE PDFJS
 @web_app.get("/vendor/pdfjs/<asset_name>")
 def serve_pdfjs_module(asset_name):
     allowed_assets = {"pdf.min.mjs", "pdf.worker.min.mjs"}
@@ -210,7 +210,7 @@ def serve_document(document_id):
 @eel.expose
 def import_pdfs():
 
-    # NATIVE FILE PICKER
+    # FILE PICKER
     dialog = tk.Tk()
     dialog.withdraw()
     dialog.attributes("-topmost", True)
@@ -280,7 +280,7 @@ def import_pdfs():
     return imported_documents
 
 
-# GET IMPORT STATUSES
+# IMPORT STATUS
 @eel.expose
 def get_import_statuses():
     statuses = []
@@ -289,7 +289,7 @@ def get_import_statuses():
     return copy.deepcopy(statuses)
 
 
-# GET FILE STATUSES
+# FILE STATUS
 @eel.expose
 def get_processing_statuses():
     statuses = copy.deepcopy(get_file_statuses())
@@ -297,12 +297,12 @@ def get_processing_statuses():
         path = status.get("filePath")
         if status.get("processState") == "processed" and path:
             issues = deduplicate_issues(status.get("issues", []))
-            # HANDLE DISPATCH RACE
-            # REFRESH ISSUE CACHE
+            # JOB RACE
+            # ISSUE CACHE
             fingerprint = repr(issues)
             cached = located_issues.get(path)
             if cached is None or cached[0] != fingerprint:
-                # A new processing result gets a new set of dismissible issues.
+                # CLEAR DISMISSED ON NEW JOB
                 if cached is not None:
                     dismissed_issues.pop(path, None)
                 enriched = []
@@ -329,10 +329,10 @@ def get_processing_statuses():
     return statuses
 
 
-# DISMISS A FLAGGED ISSUE
+# HIDE ISSUE
 @eel.expose
 def dismiss_issue(file_path, issue_id):
-    """HIDE A DISMISSED ISSUE AND ITS PDF HIGHLIGHT."""
+    """HIDE ISSUE AND MARK."""
     if not isinstance(file_path, str) or not isinstance(issue_id, str):
         return False
 
@@ -340,17 +340,17 @@ def dismiss_issue(file_path, issue_id):
     return True
 
 
-# SAVE FILE REVIEW DECISION
+# SAVE REVIEW
 @eel.expose
 def set_review_status(file_path, review_status):
-    """PERSIST AN ACCEPTED OR DENIED FILE REVIEW STATUS."""
+    """SAVE FILE REVIEW."""
     if not isinstance(file_path, str) or review_status not in {"accepted", "denied"}:
         return False
 
     review_statuses[file_path] = review_status
     return True
 
-# RENDER PDF PAGES
+# MAKE PDF PAGES
 @eel.expose
 def render_pdf_pages(file_path):
 
@@ -375,7 +375,7 @@ def render_pdf_pages(file_path):
             image_name = f"page-{page_number + 1}.png"
             image_path = output_folder / image_name
 
-            # CREATE PAGE IMAGE
+            # MAKE PAGE IMG
             if not image_path.exists():
                 image = page.get_pixmap(
                     matrix=pymupdf.Matrix(1.5, 1.5),
@@ -383,7 +383,7 @@ def render_pdf_pages(file_path):
                 )
                 image.save(image_path)
 
-            # WEBUI IMAGE URL
+            # IMG URL
             page_urls.append(f"pdf_previews/{file_id}/{image_name}")
     finally:
         document.close()

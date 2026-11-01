@@ -1,4 +1,4 @@
-/* 3 PANNEL */
+/* 3 PANELS */
 * {
   box-sizing: border-box;
 }
@@ -37,7 +37,7 @@
   border-left: 1px solid #cbd5e1;
 }
 
-/* NO BROWSER SCROLL */
+/* NO PAGE SCROLL */
 html,
 body {
   height: 100%;
@@ -218,12 +218,41 @@ body {
   position: relative;
   margin-bottom: 12px;
   padding: 10px 36px 10px 10px;
-  border-left: 4px solid #ef4444;
+  border-left: 4px solid;
+}
+
+.issue-item.issue-red {
+  border-color: #ef4444;
   background: #fef2f2;
+}
+
+.issue-item.issue-yellow {
+  border-color: #eab308;
+  background: #fefce8;
 }
 
 .issue-item p {
   margin: 0 0 6px;
+}
+
+.issue-flag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.issue-red .issue-flag {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.issue-yellow .issue-flag {
+  background: #fef08a;
+  color: #854d0e;
 }
 
 .dismiss-issue {
@@ -242,9 +271,18 @@ body {
   line-height: 1;
 }
 
-.dismiss-issue:hover,
-.dismiss-issue:focus-visible {
+.issue-yellow .dismiss-issue {
+  color: #854d0e;
+}
+
+.issue-red .dismiss-issue:hover,
+.issue-red .dismiss-issue:focus-visible {
   background: #fecaca;
+}
+
+.issue-yellow .dismiss-issue:hover,
+.issue-yellow .dismiss-issue:focus-visible {
+  background: #fef08a;
 }
 
 #highlightDetails {
@@ -283,7 +321,7 @@ body {
   opacity: 0.5;
 }
 
-/* PDF PAGE AND HIGHLIGHT OVERLAY */
+/* PDF & MARKS */
 .pdf-page-wrapper {
   position: relative;
   width: 100%;
