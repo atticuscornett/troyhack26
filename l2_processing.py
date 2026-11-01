@@ -94,7 +94,7 @@ def find_weapons(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Weapons, Military Systems, and Emerging Technologies",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
 
@@ -116,7 +116,7 @@ def find_cyber(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Cybersecurity, Intelligence, and Operational Security",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
 
@@ -138,7 +138,7 @@ def find_medical(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Medical, Physiological, Chemical, and Biological Reseatrch",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
 
@@ -160,7 +160,7 @@ def find_policy(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
 
@@ -182,7 +182,7 @@ def find_inter(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
     
