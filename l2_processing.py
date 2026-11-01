@@ -30,6 +30,11 @@ def scan_file(pdf_file_name):
 
         # Quick and dirty stage
         located_on_this_page += find_keyword(sentences, page_num)
+        located_on_this_page += find_weapons(sentences, page_num)
+        located_on_this_page += find_cyber(sentences, page_num)
+        located_on_this_page += find_medical(sentences, page_num)
+        located_on_this_page += find_policy(sentences, page_num)
+        located_on_this_page += find_inter(sentences, page_num)
 
         located_flags += located_on_this_page
 
@@ -63,8 +68,13 @@ def find_keyword(sentences, page_num) -> list:
             pattern = r'\b' + re.escape(keyword) + r'\b'
 
             if re.search(pattern, sentence_lower):
-                matching_sentences.append(sentence_num)
-                break
+                matching_sentences.append({
+            "text": sentence,
+            "flag": "List 2 - Keywords",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": "Keyword"
+        })
     return matching_sentences
 
 
@@ -84,9 +94,11 @@ def find_weapons(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Weapons, Military Systems, and Emerging Technologies",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
+
+    return issues
 
 def find_cyber(sentences, page_num):
     condition = "Does the text discuss cybersecurity, intelligence, and operational security?"
@@ -104,9 +116,11 @@ def find_cyber(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Cybersecurity, Intelligence, and Operational Security",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
+
+    return issues
 
 def find_medical(sentences, page_num):
     condition = "Does the text discuss medical, physiological, chemical, and biological research?"
@@ -124,9 +138,11 @@ def find_medical(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - Medical, Physiological, Chemical, and Biological Reseatrch",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
+
+    return issues
 
 def find_policy(sentences, page_num):
     condition = "Does the text discuss national security, policy, and sensitive government information?"
@@ -144,9 +160,11 @@ def find_policy(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
+
+    return issues
 
 def find_inter(sentences, page_num):
     condition = "Does the text discuss interagency and interservice coordination?"
@@ -164,10 +182,11 @@ def find_inter(sentences, page_num):
             "text": sentence,
             "flag": "List 2 - National Security, Policy, and Sensitive Government Information",
             "page": page_num,
-            "color": "red", # Change color to depend on confidence
+            "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
         })
     
+    return issues
     
 if __name__ == "__main__":
     file_name = input("File Name: ")

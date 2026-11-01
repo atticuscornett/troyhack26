@@ -2,6 +2,7 @@ print("Starting job dispatcher...")
 
 print("Setting up list one processing...")
 import list_one_processing as l1p
+import l2_processing as l2p
 import threading
 import asyncio
 import time
@@ -23,8 +24,7 @@ async def run_job(job_file_path):
 
     file_issues = l1p.scan_file(job_file_path)
 
-    # TODO: Implement l2p
-    print("Part 2 stuff here")
+    #file_issues.extend(l2p.scan_file(job_file_path))
 
     new_file_status["processState"] = "processed"
     new_file_status["issues"] = file_issues
