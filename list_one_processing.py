@@ -47,6 +47,8 @@ def scan_file(pdf_file_name):
 
         located_on_this_page += find_classified(sentences, page_num)
         located_on_this_page += find_protected_by_law(sentences, page_num)
+        located_on_this_page += find_business_secrets(sentences, page_num)
+
         located_on_this_page += find_personal_privacy(page_text, page_num)
         located_on_this_page += find_internal_deliberations_legal_advice(sentences, page_num)
 
@@ -157,8 +159,38 @@ def find_protected_by_law(sentences, page_num):
     
     return issues
 
-def find_business_secrets(page_text):
-    print("Not yet implemented")
+def find_business_secrets(sentences, page_num):
+    keywords = ["proprietary algorithm",
+        "proprietary technology",
+        "pending bid",
+        "follow-on contract",
+        "bid price",
+        "pricing it plans to offer",
+        "per-aircraft pricing",
+        "non-public pricing",
+        "source selection",
+        "competitive proposal"]
+
+    anchor = (
+        "A company's bid or contract proposal reveals proprietary "
+        "technology, trade secrets, bid strategy, or pricing that the "
+        "company plans to offer to a customer or government organization."
+    )
+
+    semantic_matches = sf.find_similar_sentences(sentences, anchor, 0.2)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Business Secrets",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
+        
+    return issues
 
 def find_internal_deliberations_legal_advice(sentences, page_num):
     keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
@@ -168,8 +200,6 @@ def find_internal_deliberations_legal_advice(sentences, page_num):
 
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
-        print(f"Filtered semantic match {index + 1}: {sentence}")
-        print(f"Reason: {filtered_semantic_matches[1][index]}")
         issues.append({
             "text": sentence,
             "flag": "List 1 - Internal Deliberation or Legal Advice",
