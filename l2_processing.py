@@ -80,7 +80,7 @@ def find_keyword(sentences, page_num) -> list:
 
 def find_weapons(sentences, page_num):
     condition = "weapons, military systems, and emerging technologies?"
-    keywords = ["weapon", "unamanned", "animal testing", "aerial", "remotely", "nuclear", "laser", "particle", "directed energy"]
+    keywords = ["weapon", "unamanned", "animal testing", "aerial", "drone", "remotely", "nuclear", "laser", "particle", "directed energy"]
 
     print("Finding similar sentences to 'weapons, military systems, and emerging technologies':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
@@ -125,8 +125,8 @@ def find_cyber(sentences, page_num):
     return issues
 
 def find_medical(sentences, page_num):
-    condition = "medical, physiological, chemical, and biological research?"
-    keywords = ["physiologic", "oxygen", "research", "hypobaria", "hypopoxia", "chemical", "biological", "toxin", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
+    condition = "medical, physiological, chemical, and biological research"
+    keywords = ["physiologic", "oxygen", "research", "hypobaria", "hypopoxia", "chemical", "biological", "fatigue", "deshydration", "toxin", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
     
     print("Finding similar sentences to 'medical, physiological, chemical, and biological research':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
@@ -138,7 +138,7 @@ def find_medical(sentences, page_num):
         print(f"Reason: {filtered_semantic_matches[1][index]}")
         issues.append({
             "text": sentence,
-            "flag": "List 2 - Medical, Physiological, Chemical, and Biological Reseatrch",
+            "flag": "List 2 - Medical, Physiological, Chemical, and Biological Research",
             "page": page_num,
             "color": "yellow", # Change color to depend on confidence
             "explanation": filtered_semantic_matches[1][index]
