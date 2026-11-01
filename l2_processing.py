@@ -29,7 +29,7 @@ def scan_file(pdf_file_name):
         sentences = re.split(sentence_endings, page_text)
 
         # Quick and dirty stage
-        located_on_this_page += find_keyword(sentences, page_num)
+        #located_on_this_page += find_keyword(sentences, page_num)
         located_on_this_page += find_weapons(sentences, page_num)
         located_on_this_page += find_cyber(sentences, page_num)
         located_on_this_page += find_medical(sentences, page_num)
@@ -84,7 +84,9 @@ def find_weapons(sentences, page_num):
 
     print("Finding similar sentences to 'weapons, military systems, and emerging technologies':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
+
+    #semantic_matches = []    
 
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -106,7 +108,7 @@ def find_cyber(sentences, page_num):
 
     print("Finding similar sentences to 'cybersecurity, intelligence, and operational security':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
 
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -128,7 +130,7 @@ def find_medical(sentences, page_num):
     
     print("Finding similar sentences to 'medical, physiological, chemical, and biological research':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
     
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -150,7 +152,7 @@ def find_policy(sentences, page_num):
 
     print("Finding similar sentences to 'national security, policy, and sensitive government information':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
         
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -172,7 +174,7 @@ def find_inter(sentences, page_num):
 
     print("Finding similar sentences to 'national security, policy, and sensitive government information':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
             
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
