@@ -11,19 +11,12 @@ import re
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
-def find_similar_sentences(sentences: str, topic_sentence: str) -> list:
+def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float = SIMILARITY_THRESHOLD) -> list:
     """
     Compare given text to a topic sentence and return sentences that are similar to the topic sentence.
     Input: text to search, topic sentence to compare against
     Output: list of dictionaries containing the target sentence, context window, and similarity score
     """
-    
-    # # 2. Clean and split raw corpus text into individual sentences
-    # sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text) if s.strip()]
-    # print("Sentences extracted from text:")
-    # print(sentences)
-    # if not sentences:
-    #     return []
 
     # Compute the vectors for the sentences
     anchor_vector = model.encode(topic_sentence, convert_to_tensor=True)
