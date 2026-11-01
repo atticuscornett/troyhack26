@@ -37,6 +37,40 @@ function renderFileList() {
 
 renderFileList();
 
+// UPDATE FILE STATUSES
+async function refreshFileStatuses() {
+  try {
+    const jobStatuses = await eel.get_processing_statuses()();
+    let listChanged = false;
+
+    jobStatuses.forEach(job => {
+      const file = files.find(item => item.path === job.filePath);
+
+      if (!file || file.status === job.processState) {
+        return;
+      }
+
+      file.status = job.processState;
+      listChanged = true;
+
+      // MOVE COMPLETED FILE TO TOP
+      if (job.processState === "processed") {
+        files.splice(files.indexOf(file), 1);
+        files.unshift(file);
+      }
+    });
+
+    if (listChanged) {
+      renderFileList();
+    }
+  } catch (error) {
+    console.error("Could not update file statuses.", error);
+  }
+}
+
+// CHECK STATUS EVERY SECOND
+setInterval(refreshFileStatuses, 1000);
+
 // FILE SELECT
 function selectFile(fileId) {
   const selectedFile = files.find(file => file.id === fileId);
@@ -93,22 +127,33 @@ importButton.addEventListener("click", async () => {
   importButton.disabled = true;
 
   try {
-    // CALL PYTHON
-    const importedFile = await eel.import_pdf()();
+    // GET FILE PATH FROM PYTHON
+    const filePath = await eel.import_pdf()();
 
-    if (!importedFile) {
+    // NO FILE SELECTED
+    if (!filePath) {
       importMessage.textContent = "No file selected.";
       return;
     }
 
-    // ADD FILE
+    // ADD SELECTED FILE
+    const importedFile = {
+      id: `report-${crypto.randomUUID()}`,
+      name: filePath.split(/[\\/]/).pop(),
+      status: "processing",
+      path: filePath
+    };
+
     files.push(importedFile);
     renderFileList();
     selectFile(importedFile.id);
 
-    importMessage.textContent = "Import complete.";
+    // FILE PATH READY FOR OTHER PYTHON CODE
+    console.log(filePath);
+    importMessage.textContent = "Import started.";
   } catch (error) {
-    importMessage.textContent = "Eel import service is not available yet.";
+    console.error(error);
+    importMessage.textContent = "Could not select a PDF.";
   } finally {
     importButton.disabled = false;
   }
