@@ -49,6 +49,8 @@ async def run_job(job_file_path):
             break
         elif issue["color"] == "yellow" and highest_severity != "red":
             highest_severity = "yellow"
+    if len(file_issues) == 0:
+        highest_severity = "green"
 
     new_file_status["issueState"] = highest_severity
 
