@@ -86,6 +86,8 @@ def find_weapons(sentences, page_num):
     semantic_matches = sf.find_similar_sentences(sentences, condition)
     filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
 
+    #semantic_matches = []    
+
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
         print(f"Filtered semantic match {index + 1}: {sentence}")
