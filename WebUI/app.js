@@ -5,6 +5,33 @@ let selectedFileId = null;
 
 const pdfjsLibPromise = import("./vendor/pdfjs/pdf.min.mjs");
 let pdfRenderId = 0;
+const pageViewports = new Map();
+
+function drawHighlights(file) {
+  document.querySelectorAll('.highlight-layer').forEach(layer => {
+    layer.replaceChildren();
+    const viewport = pageViewports.get(Number(layer.dataset.page));
+    if (!viewport) return;
+    (file.issues || []).filter(issue => Number(issue.page) === Number(layer.dataset.page)).forEach(issue => {
+      (issue.rectangles || []).forEach(rect => {
+        // PDF.js 6 exposes point conversion, not convertToViewportRectangle.
+        // Transform the two opposing PDF corners, then normalize below so this
+        // also works for rotated pages.
+        const [x1, y1] = viewport.convertToViewportPoint(rect[0], rect[1]);
+        const [x2, y2] = viewport.convertToViewportPoint(rect[2], rect[3]);
+        const highlight = document.createElement('div');
+        highlight.className = 'pdf-highlight';
+        highlight.dataset.issueId = issue.id;
+        highlight.style.left = `${Math.min(x1, x2) / viewport.width * 100}%`;
+        highlight.style.top = `${Math.min(y1, y2) / viewport.height * 100}%`;
+        highlight.style.width = `${Math.abs(x2 - x1) / viewport.width * 100}%`;
+        highlight.style.height = `${Math.abs(y2 - y1) / viewport.height * 100}%`;
+        highlight.style.backgroundColor = CSS.supports('color', issue.color) ? issue.color : 'yellow';
+        layer.appendChild(highlight);
+      });
+    });
+  });
+}
 
 // RENDER PDF.JS DOCUMENT
 async function renderPdfDocument(documentUrl, pdfContainer) {
@@ -26,13 +53,17 @@ async function renderPdfDocument(documentUrl, pdfContainer) {
   }
 
   pdfContainer.innerHTML = "";
+  pageViewports.clear();
 
   // RENDER PDF PAGES
   for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
     const page = await pdfDocument.getPage(pageNumber);
+    if (renderId !== pdfRenderId) return;
     const viewport = page.getViewport({ scale: 1.5 });
     const outputScale = window.devicePixelRatio || 1;
     const canvas = document.createElement("canvas");
+    const wrapper = document.createElement("div");
+    const layer = document.createElement("div");
     const context = canvas.getContext("2d", { alpha: false });
 
     canvas.className = "pdf-page";
@@ -40,7 +71,15 @@ async function renderPdfDocument(documentUrl, pdfContainer) {
     canvas.height = Math.floor(viewport.height * outputScale);
     canvas.setAttribute("aria-label", `PDF page ${pageNumber}`);
 
-    pdfContainer.appendChild(canvas);
+    wrapper.className = "pdf-page-wrapper";
+    wrapper.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
+    layer.className = "highlight-layer";
+    layer.dataset.page = pageNumber;
+    wrapper.append(canvas, layer);
+    pdfContainer.appendChild(wrapper);
+    pageViewports.set(pageNumber, viewport);
+    const selected = files.find(file => file.id === selectedFileId);
+    if (selected) drawHighlights(selected);
 
     await page.render({
       canvasContext: context,
@@ -85,6 +124,7 @@ function renderHighlightDetails(file) {
         <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
+        ${issue.location === "unavailable" ? '<p>Location unavailable</p>' : ''}
       </article>
     `;
   }).join("");
@@ -136,14 +176,15 @@ async function refreshFileStatuses() {
         }
       }
 
-      // UPDATE SELECTED FILE DETAILS
-      if (file.id === selectedFileId) {
-        renderHighlightDetails(file);
-      }
     });
 
     if (listChanged) {
       renderFileList();
+    }
+    const selected = files.find(file => file.id === selectedFileId);
+    if (selected) {
+      renderHighlightDetails(selected);
+      drawHighlights(selected);
     }
   } catch (error) {
     console.error("Could not update file statuses.", error);
