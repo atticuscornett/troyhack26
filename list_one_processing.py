@@ -9,9 +9,10 @@ import bisect
 
 located_flags: list[dict] = []
 
-from transformers import pipeline
 
 print("Initializing privacy classifier...")
+
+from transformers import pipeline
 privacy_classifier = pipeline(
     task="token-classification",
     model="openai/privacy-filter",
@@ -45,6 +46,7 @@ def scan_file(pdf_file_name):
         sentences = re.split(sentence_endings, page_text)
 
         located_on_this_page += find_classified(sentences, page_num)
+        located_on_this_page += find_protected_by_law(sentences, page_num)
         located_on_this_page += find_personal_privacy(page_text, page_num)
         located_on_this_page += find_internal_deliberations_legal_advice(sentences, page_num)
 
@@ -95,8 +97,65 @@ def find_classified(sentences, page_num) -> list:
                 })
     return matches
 
-def find_protected_by_law(page_text):
-    print("Not yet implemented")
+def find_protected_by_law(sentences, page_num):
+    keywords = [
+            "overseas",
+            "deployed unit",
+            "sensitive unit",
+            "foreign government",
+            "foreign partner",
+            "critical infrastructure",
+            "defensive posture",
+            "security posture",
+            "vulnerability",
+            "facility security"
+    ]
+
+    anchors = [
+            "Names, ranks, identities, locations, and duty details of personnel " \
+            "serving in overseas, sensitive, or routinely deployed units.",
+            "Sensitive or confidential information provided by a foreign government " \
+            "or international partner under an expectation of restricted disclosure.",
+            "Specific security details about critical infrastructure or a particular " \
+            "facility, including its defensive posture, vulnerabilities, or protections."
+    ]
+
+    semantic_matches = []
+
+    for anchor in anchors:
+        semantic_matches.extend(
+            sf.find_similar_sentences(sentences, anchor)
+        )
+
+    # Remove duplicate sentences found by multiple anchors.
+    unique_matches = {}
+    for match in semantic_matches:
+        sentence = match["target_sentence"]
+        existing = unique_matches.get(sentence)
+
+        if existing is None or (
+            match["similarity_score"] > existing["similarity_score"]
+        ):
+            unique_matches[sentence] = match
+
+    # Convert the dictionary back to a list
+    semantic_matches = list(unique_matches.values())
+
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Protected by Another Law",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
+
+    sf.llm_semantic_analysis(filtered_semantic_matches, ", ".join(anchors), "protected")
+    
+    return issues
 
 def find_business_secrets(page_text):
     print("Not yet implemented")
@@ -104,7 +163,6 @@ def find_business_secrets(page_text):
 def find_internal_deliberations_legal_advice(sentences, page_num):
     keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
 
-    print("Finding similar sentences to 'internal deliberation':")
     semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
     filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
 

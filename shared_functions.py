@@ -1,4 +1,8 @@
-OLLAMA_MODEL = "gemma4:12b"
+import os
+SKIP_LLM = os.getenv("SKIP_LLM") == "1"
+
+#OLLAMA_MODEL = "gemma4:12b"
+OLLAMA_MODEL = "qwen3.5:4b"
 SIMILARITY_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SIMILARITY_THRESHOLD: float = 0.25
@@ -7,6 +11,7 @@ WINDOW_SIZE: int = 3
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModel, AutoTokenizer
 import re
+import ollama
 
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
@@ -48,16 +53,64 @@ def threshold_cut_or_keyword(vector_output, keyword_list, threshold=0.3):
 
     relavent_sentences = []
     reasons = []
+    context_windows = []
 
     for item in vector_output:
         if item['similarity_score'] >= threshold:
             relavent_sentences.append(item['target_sentence'])
-            reasons.append(f"Sentence is similar to topic above.")
+            reasons.append(f"Sentence is similar to topic above. (Similarity score: {item['similarity_score']})")
+            context_windows.append(item['context_window'])
         else:
             for keyword in keyword_list:
                 if keyword.lower() in item['target_sentence'].lower():
                     relavent_sentences.append(item['target_sentence'])
                     reasons.append(f"Sentence contains keyword '{keyword}'.")
+                    context_windows.append(item['context_window'])
                     break
-    return [relavent_sentences, reasons]
+    return [relavent_sentences, reasons, context_windows]
         
+def llm_semantic_analysis(filtered_semantic_matches, task_description, flag_name):
+    if SKIP_LLM:
+        print("Skipping LLM semantic analysis due to SKIP_LLM environment variable.")
+        return filtered_semantic_matches
+
+    context_windows = filtered_semantic_matches[2]
+    print(f"Context windows for LLM analysis: {context_windows}")
+    # Build text blocks mapped to indices
+    xml_items = []
+    for idx, win in enumerate(context_windows):
+        xml_items.append(f'<window id="{idx}">\n{win}\n</window>')
+    
+    formatted_windows = "\n\n".join(xml_items)
+
+    prompt = f"""You are a data validation engine designed to identify "{task_description}".
+        Analyze each text sequence block provided inside the <windows> tags below.
+
+        <windows>
+        {formatted_windows}
+        </windows>
+
+        Return your final evaluations as a strict JSON array of objects. Do not write markdown, code blocks, or conversational preambles. Follow this structural format exactly:
+        [
+        {{"id": 0, "is_{flag_name}": true, "reasoning": "A brief sentence why."}},
+        {{"id": 1, "is_{flag_name}": false, "reasoning": "A brief sentence why."}}
+        ]"""
+
+    print("Sending prompt to LLM for semantic analysis...")
+    print(prompt)
+
+    try:
+        response = ollama.generate(
+            model=OLLAMA_MODEL, 
+            prompt=prompt,
+            format='json', 
+            options={'temperature': 0.0}
+        )
+        print("LLM response received.")
+        print(response['response'])
+        print("PLEASE IMPLEMENT PLEASE AAAAAA")
+        return filtered_semantic_matches
+    except Exception as e:
+        print(f"Error processing batch: {e}")
+        return filtered_semantic_matches
+    
