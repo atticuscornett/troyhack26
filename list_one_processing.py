@@ -300,8 +300,22 @@ def find_law_enforcement_records(sentences, page_num):
     return issues
 
 def find_financial_regulation(sentences, page_num):
-    print("Not yet implemented")
-    return []
+    keywords = ["financial", "regulation", "compliance", "audit", "reporting", "risk management", "capital requirements", "liquidity", "stress testing"]
+    
+    semantic_matches = sf.find_similar_sentences(sentences, "Reports about the examination or condition of financial institutions, such as bank examinations, audits, or regulatory compliance reviews.")
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
+    
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Financial Regulation",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
+        
+    return issues
 
 def find_wells(sentences, page_num):
     keywords = ["well", "wells", "oil well", "gas well", "drilling", "hydraulic fracturing", "fracking", "oilfield", "oil field", "gas field"]
