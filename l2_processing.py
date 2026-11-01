@@ -68,8 +68,13 @@ def find_keyword(sentences, page_num) -> list:
             pattern = r'\b' + re.escape(keyword) + r'\b'
 
             if re.search(pattern, sentence_lower):
-                matching_sentences.append(sentence_num)
-                break
+                matching_sentences.append({
+            "text": sentence,
+            "flag": "List 2 - Keywords",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": "Keyword"
+        })
     return matching_sentences
 
 
