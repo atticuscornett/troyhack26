@@ -110,10 +110,10 @@ function escapeHtml(value) {
 // SHOW FILE ISSUES
 function renderHighlightDetails(file) {
   const details = document.getElementById("highlightDetails");
-  const issues = file.issues || [];
+  const issues = (file.issues || []).filter(issue => issue.location === "available");
 
   if (!issues.length) {
-    details.innerHTML = "<p>No issues found yet.</p>";
+    details.innerHTML = "<p>No located issues found.</p>";
     return;
   }
 
@@ -123,7 +123,6 @@ function renderHighlightDetails(file) {
         <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
-        ${issue.location === "unavailable" ? '<p>Location unavailable</p>' : ''}
       </article>
     `;
   }).join("");
