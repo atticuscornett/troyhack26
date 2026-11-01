@@ -1,0 +1,110 @@
+/* 3 PANNEL */
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 320px;
+  height: 100vh;
+}
+
+#filePanel,
+#detailsPanel {
+  padding: 16px;
+  overflow-y: auto;
+  background: white;
+}
+
+#filePanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #cbd5e1;
+}
+
+#detailsPanel {
+  border-left: 1px solid #cbd5e1;
+}
+
+/* NO BROWSER SCROLL */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#pdfPanel {
+  min-width: 0;
+  padding: 16px;
+}
+
+#pdfContainer {
+  height: calc(100vh - 110px);
+  padding: 16px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  overflow: auto;
+}
+
+/* PAGE STYLE */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #e5e7eb;
+}
+
+/* FILE BUTTONS */
+.file-item {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-item:hover {
+  background: #f1f5f9;
+}
+
+.file-item.selected {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+/* FILE STATUS */
+.status {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.status.processed {
+  color: green;
+}
+
+.status.waiting {
+  color: #b45309;
+}
+
+.status.processing {
+  color: #2563eb;
+}
+
+/* IMPORT BUTTON */
+#fileList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+#importButton {
+  margin-top: 12px;
+  padding: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
