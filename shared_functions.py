@@ -3,9 +3,11 @@ SKIP_LLM = os.getenv("SKIP_LLM") == "1"
 
 #OLLAMA_MODEL = "gemma4:12b"
 OLLAMA_MODEL = "qwen3.5:4b"
-SIMILARITY_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+#SIMILARITY_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+#SIMILARITY_MODEL = "sentence-transformers/all-mpnet-base-v2"
+SIMILARITY_MODEL = "BAAI/bge-base-en-v1.5"
 
-SIMILARITY_THRESHOLD: float = 0.25
+SIMILARITY_THRESHOLD: float = 0.5
 WINDOW_SIZE: int = 1
 
 from sentence_transformers import SentenceTransformer, util
@@ -13,7 +15,8 @@ from transformers import AutoModel, AutoTokenizer
 import re
 import ollama
 
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+#model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+model = SentenceTransformer(SIMILARITY_MODEL)
 
 
 def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float = SIMILARITY_THRESHOLD) -> list:
@@ -24,8 +27,8 @@ def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float
     """
 
     # Compute the vectors for the sentences
-    anchor_vector = model.encode(topic_sentence, convert_to_tensor=True)
-    sentence_vectors = model.encode(sentences, convert_to_tensor=True)
+    anchor_vector = model.encode(topic_sentence, convert_to_tensor=True, normalize_embeddings=True)
+    sentence_vectors = model.encode(sentences, convert_to_tensor=True, normalize_embeddings=True)
     
     # Compute cosine similarities instantly using the built-in util function
     similarities = util.cos_sim(sentence_vectors, anchor_vector).squeeze(-1).tolist()
@@ -33,7 +36,7 @@ def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float
     matched_windows = []
 
     for idx, (sentence, score) in enumerate(zip(sentences, similarities)):
-        if score >= SIMILARITY_THRESHOLD:
+        if score >= threshold:
             start = max(0, idx - WINDOW_SIZE)
             end = min(len(sentences), idx + WINDOW_SIZE + 1)
             context = " ".join(sentences[start:end])
@@ -46,7 +49,7 @@ def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float
             
     return matched_windows
 
-def threshold_cut_or_keyword(vector_output, keyword_list, threshold=0.3):
+def threshold_cut_or_keyword(vector_output, keyword_list, threshold=0.6):
     """
     Cuts or keywords to filter a list of sentences based on a similarity threshold and a list of keywords.
     """

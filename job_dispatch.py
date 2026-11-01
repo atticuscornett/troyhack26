@@ -24,7 +24,7 @@ async def run_job(job_file_path):
 
     file_issues = l1p.scan_file(job_file_path)
 
-    file_issues.extend(l2p.scan_file(job_file_path))
+    #file_issues.extend(l2p.scan_file(job_file_path))
 
     new_file_status["processState"] = "processed"
     new_file_status["issues"] = file_issues

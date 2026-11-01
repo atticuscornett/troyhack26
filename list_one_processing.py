@@ -143,7 +143,7 @@ def find_protected_by_law(sentences, page_num):
     # Convert the dictionary back to a list
     semantic_matches = list(unique_matches.values())
 
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
 
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -178,7 +178,7 @@ def find_business_secrets(sentences, page_num):
     )
 
     semantic_matches = sf.find_similar_sentences(sentences, anchor, 0.2)
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
     
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -196,7 +196,7 @@ def find_internal_deliberations_legal_advice(sentences, page_num):
     keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
 
     semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
 
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
@@ -283,7 +283,7 @@ def find_law_enforcement_records(page_text):
     keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
     
     semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
-    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
     
     issues = []
     for index, sentence in enumerate(filtered_semantic_matches[0]):
