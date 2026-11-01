@@ -50,9 +50,9 @@ def scan_file(pdf_file_name):
         located_on_this_page += find_business_secrets(sentences, page_num)
         located_on_this_page += find_internal_deliberations_legal_advice(sentences, page_num)
         located_on_this_page += find_personal_privacy(page_text, page_num)
-        located_on_this_page += find_law_enforcement_records(page_text)
-        located_on_this_page += find_financial_regulation(page_text)
-        located_on_this_page += find_wells(page_text)
+        located_on_this_page += find_law_enforcement_records(sentences, page_num)
+        located_on_this_page += find_financial_regulation(sentences, page_num)
+        located_on_this_page += find_wells(sentences, page_num)
 
         located_flags += located_on_this_page
 
@@ -281,7 +281,7 @@ def find_personal_privacy(page_text, page_num):
     # Return the values of the dictionary as a list
     return cleaned_pii_issues.values()
 
-def find_law_enforcement_records(page_text, page_num):
+def find_law_enforcement_records(sentences, page_num):
     keywords = ["case file", "investigation", "criminal", "law enforcement", "arrest", "warrant", "suspect", "conviction", "prosecution"]
     
     semantic_matches = sf.find_similar_sentences(sentences, "A law enforcement agency is investigating a criminal case and has records related to the investigation.")
@@ -299,27 +299,27 @@ def find_law_enforcement_records(page_text, page_num):
         
     return issues
 
-def find_financial_regulation(page_text):
+def find_financial_regulation(sentences, page_num):
     print("Not yet implemented")
     return []
 
-def find_wells(page_text):
+def find_wells(sentences, page_num):
     keywords = ["well", "wells", "oil well", "gas well", "drilling", "hydraulic fracturing", "fracking", "oilfield", "oil field", "gas field"]
         
-        semantic_matches = sf.find_similar_sentences(sentences, "A document discusses water, oil, and gas wells, including drilling, hydraulic fracturing, surveys, and related operations.")
-        filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
+    semantic_matches = sf.find_similar_sentences(sentences, "A document discusses water, oil, and gas wells, including drilling, hydraulic fracturing, surveys, and related operations.")
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords)
         
-        issues = []
-        for index, sentence in enumerate(filtered_semantic_matches[0]):
-            issues.append({
-                "text": sentence,
-                "flag": "List 1 - Wells",
-                "page": page_num,
-                "color": "red",
-                "explanation": filtered_semantic_matches[1][index]
-            })
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Wells",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
             
-        return issues
+    return issues
 
 def ai_confirm():
     print("Not yet implemented")
