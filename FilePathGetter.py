@@ -31,12 +31,7 @@ PREVIEW_FOLDER = PROJECT_FOLDER / "WebUI" / "pdf_previews"
 
 
 def locate_issue_rectangles(document, issue):
-    """Return PDF-coordinate rectangles for one dispatcher issue.
-
-    The dispatcher owns the issue data.  This adapter only makes its page and
-    text values safe to consume and translates PyMuPDF's top-left coordinates
-    into the PDF coordinate system used by PDF.js.
-    """
+    """LOCATE ISSUE RECTANGLES."""
     try:
         page_number = int(issue.get("page"))
     except (TypeError, ValueError):
@@ -46,8 +41,7 @@ def locate_issue_rectangles(document, issue):
     if not 1 <= page_number <= len(document) or not isinstance(text, str):
         return [], "unavailable"
 
-    # Keep internal whitespace flexible: PDFs commonly split a sentence over
-    # lines, whereas dispatchers usually provide it as a single string.
+    # NORMALIZE MATCH TEXT
     needle = " ".join(text.split())
     if not needle:
         return [], "unavailable"
@@ -55,8 +49,7 @@ def locate_issue_rectangles(document, issue):
     page = document[page_number - 1]
     try:
         found = page.search_for(needle)
-        # A direct search is preferable, but this fallback handles dispatchers
-        # that retain a line break which differs from the PDF extraction.
+        # RETRY ORIGINAL TEXT
         if not found and needle != text:
             found = page.search_for(text)
     except Exception as error:
@@ -66,8 +59,7 @@ def locate_issue_rectangles(document, issue):
     rectangles = []
     seen = set()
     for rect in found:
-        # search_for() returns MuPDF (top-left) coordinates.  PDF.js's
-        # convertToViewportRectangle() requires native PDF coordinates.
+        # CONVERT PDF COORDINATES
         pdf_rect = rect * ~page.transformation_matrix
         values = tuple(round(value, 4) for value in pdf_rect)
         if values not in seen:
@@ -158,8 +150,8 @@ def get_processing_statuses():
         if status.get("processState") != "processed" or not path:
             continue
         issues = status.get("issues", [])
-        # The dispatcher may publish "processed" just before publishing issues.
-        # Rebuild the cache whenever the reported issue data changes.
+        # HANDLE DISPATCH RACE
+        # REFRESH ISSUE CACHE
         fingerprint = repr(issues)
         cached = located_issues.get(path)
         if cached is None or cached[0] != fingerprint:

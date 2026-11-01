@@ -6,6 +6,7 @@ let selectedFileId = null;
 const pdfjsLibPromise = import("./vendor/pdfjs/pdf.min.mjs");
 let pdfRenderId = 0;
 const pageViewports = new Map();
+let highlightFocusTimer = null;
 
 function drawHighlights(file) {
   document.querySelectorAll('.highlight-layer').forEach(layer => {
@@ -14,9 +15,7 @@ function drawHighlights(file) {
     if (!viewport) return;
     (file.issues || []).filter(issue => Number(issue.page) === Number(layer.dataset.page)).forEach(issue => {
       (issue.rectangles || []).forEach(rect => {
-        // PDF.js 6 exposes point conversion, not convertToViewportRectangle.
-        // Transform the two opposing PDF corners, then normalize below so this
-        // also works for rotated pages.
+        // CONVERT VIEWPORT POINTS
         const [x1, y1] = viewport.convertToViewportPoint(rect[0], rect[1]);
         const [x2, y2] = viewport.convertToViewportPoint(rect[2], rect[3]);
         const highlight = document.createElement('div');
@@ -120,7 +119,7 @@ function renderHighlightDetails(file) {
 
   details.innerHTML = issues.map(issue => {
     return `
-      <article class="issue-item">
+      <article class="issue-item" data-issue-id="${escapeHtml(issue.id || "")}" data-location="${escapeHtml(issue.location || "unavailable")}">
         <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
@@ -129,6 +128,31 @@ function renderHighlightDetails(file) {
     `;
   }).join("");
 }
+
+// FOCUS FLAG HIGHLIGHT
+document.getElementById("highlightDetails").addEventListener("click", event => {
+  const issueCard = event.target.closest(".issue-item[data-issue-id]");
+  if (!issueCard || issueCard.dataset.location === "unavailable") return;
+
+  const highlight = [...document.querySelectorAll(".pdf-highlight")].find(element => {
+    return element.dataset.issueId === issueCard.dataset.issueId;
+  });
+  if (!highlight) return;
+
+  document.querySelectorAll(".pdf-highlight").forEach(element => {
+    element.style.outline = "";
+    element.style.outlineOffset = "";
+  });
+  highlight.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+  highlight.style.outline = "3px solid #1d4ed8";
+  highlight.style.outlineOffset = "2px";
+
+  window.clearTimeout(highlightFocusTimer);
+  highlightFocusTimer = window.setTimeout(() => {
+    highlight.style.outline = "";
+    highlight.style.outlineOffset = "";
+  }, 1800);
+});
 
 // BUTTON DISPLAY FOR FILES
 function renderFileList() {
