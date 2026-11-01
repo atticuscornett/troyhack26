@@ -30,6 +30,11 @@ def scan_file(pdf_file_name):
 
         # Quick and dirty stage
         located_on_this_page += find_keyword(sentences, page_num)
+        located_on_this_page += find_weapons(sentences, page_num)
+        located_on_this_page += find_cyber(sentences, page_num)
+        located_on_this_page += find_medical(sentences, page_num)
+        located_on_this_page += find_policy(sentences, page_num)
+        located_on_this_page += find_inter(sentences, page_num)
 
         located_flags += located_on_this_page
 
