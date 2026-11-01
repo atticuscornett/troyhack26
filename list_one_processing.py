@@ -6,15 +6,21 @@ import json
 import time
 import bisect
 
+
 located_flags: list[dict] = []
 
 from transformers import pipeline
 
+print("Initializing privacy classifier...")
 privacy_classifier = pipeline(
     task="token-classification",
     model="openai/privacy-filter",
     aggregation_strategy="simple"
 )
+
+print("Initializing semantic similarity model...")
+import shared_functions as sf
+
 
 def scan_file(pdf_file_name):
     global located_flags
@@ -38,9 +44,9 @@ def scan_file(pdf_file_name):
         sentence_endings = r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s'
         sentences = re.split(sentence_endings, page_text)
 
-        # Quick and dirty stage
         located_on_this_page += find_classified(sentences, page_num)
         located_on_this_page += find_personal_privacy(page_text, page_num)
+        located_on_this_page += find_internal_deliberations_legal_advice(sentences, page_num)
 
         located_flags += located_on_this_page
 
@@ -54,8 +60,13 @@ def scan_file(pdf_file_name):
 
     return located_flags
         
-
 def find_classified(sentences, page_num) -> list:
+    """
+    This function searches for markers of classified information.
+    Input: list of sentences, current page number
+    Output: list of issue structures
+    """
+
     # Get all the pieces in parentheses
     matches = []
     for sentence_num, sentence in enumerate(sentences):
@@ -90,10 +101,34 @@ def find_protected_by_law(page_text):
 def find_business_secrets(page_text):
     print("Not yet implemented")
 
-def find_internal_deliberations_legal_advice(page_text):
-    print("Not yet implemented")
+def find_internal_deliberations_legal_advice(sentences, page_num):
+    keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
 
+    print("Finding similar sentences to 'internal deliberation':")
+    semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Internal Deliberation or Legal Advice",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
+    
+    return issues
+                
 def find_personal_privacy(page_text, page_num):
+    """
+    This function searches for personal privacy information.
+    Input: page text, current page number
+    Output: list of issue structures
+    """
+    
     # TODO: Compare with Presidio
     # TODO: Be influenced by the confidence value
 
@@ -151,7 +186,6 @@ def find_personal_privacy(page_text, page_num):
     # Return the values of the dictionary as a list
     return pii_issues.values()
 
-
 def find_law_enforcement_records(page_text):
     print("Not yet implemented")
 
@@ -163,6 +197,9 @@ def find_wells(page_text):
 
 def ai_confirm():
     print("Not yet implemented")
+
+
+
 
 
 if __name__ == "__main__":
