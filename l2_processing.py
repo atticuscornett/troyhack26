@@ -80,7 +80,7 @@ def find_keyword(sentences, page_num) -> list:
 
 def find_weapons(sentences, page_num):
     condition = "weapons, military systems, and emerging technologies?"
-    keywords = ["weapon", "unamanned", "animal testing", "aerial", "drone", "remotely", "nuclear", "laser", "particle", "directed energy"]
+    keywords = ["weapon", "unamanned", "animal testing", "aerial", "drone", "f-22", "f-35", "remotely", "nuclear", "laser", "particle", "directed energy"]
 
     print("Finding similar sentences to 'weapons, military systems, and emerging technologies':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
