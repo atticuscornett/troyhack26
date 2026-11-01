@@ -169,7 +169,7 @@ def find_personal_privacy(page_text, page_num):
         if not str(sentence_id) in pii_issues:
             pii_issues[str(sentence_id)] = {
                 "text": sentences[sentence_id],
-                "flag": "red",
+                "flag": "List 1 - Classified Information",
                 "reasons": set([chunk["entity_group"]]),
                 "page": page_num,
                 "color": "red",
