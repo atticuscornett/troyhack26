@@ -82,7 +82,7 @@ function renderHighlightDetails(file) {
   details.innerHTML = issues.map(issue => {
     return `
       <article class="issue-item">
-        <p><strong>Page ${issue.page}</strong></p>
+        <p><strong>Page ${escapeHtml(issue.page)}${issue.flag ? ` (${escapeHtml(issue.flag)})` : ""}</strong></p>
         <p>${escapeHtml(issue.explanation || issue.flag)}</p>
         <p>${escapeHtml(issue.text)}</p>
       </article>
