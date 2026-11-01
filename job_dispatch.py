@@ -17,6 +17,7 @@ async def run_job(job_file_path):
         "filePath": job_file_path,
         "fileName": job_file_path.split("/")[-1],
         "issueState": "unknown",
+        "flagState": "pending",
         "issues": []
     }
 
@@ -26,18 +27,21 @@ async def run_job(job_file_path):
 
     file_issues.extend(l2p.scan_file(job_file_path))
 
-    new_file_status["processState"] = "processed"
-    new_file_status["issues"] = file_issues
-
-    highest_severity = "unknown"
+    highest_severity = "clear"
     for issue in file_issues:
-        if issue["color"] == "red":
+        issue_color = str(issue.get("color", "")).lower()
+        if issue_color == "red":
             highest_severity = "red"
             break
-        elif issue["color"] == "yellow" and highest_severity != "red":
+        if issue_color == "yellow":
             highest_severity = "yellow"
 
-    new_file_status["issueState"] = highest_severity
+    new_file_status.update({
+        "issues": file_issues,
+        "issueState": highest_severity,
+        "flagState": highest_severity,
+        "processState": "processed",
+    })
 
 
 def get_file_statuses():

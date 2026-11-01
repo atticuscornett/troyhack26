@@ -9,13 +9,13 @@ const pageViewports = new Map();
 let highlightFocusTimer = null;
 
 function isPdfProcessing(file) {
-  return ["queued", "converting", "processing"].includes(file?.status);
+  return ["pending", "queued", "converting", "processing"].includes(file?.status);
 }
 
 function updatePdfProcessingIndicator(file) {
   const indicator = document.getElementById("pdfProcessingIndicator");
   const isSelected = file?.id === selectedFileId;
-  indicator.hidden = !(isSelected && isPdfProcessing(file) && file.documentUrl);
+  indicator.hidden = !(isSelected && isPdfProcessing(file));
 }
 
 function drawHighlights(file) {
@@ -201,15 +201,20 @@ document.getElementById("highlightDetails").addEventListener("click", event => {
 });
 
 // FILE LIST
+function getFileFlagState(file) {
+  return ["red", "yellow"].includes(file?.flagState) ? file.flagState : "";
+}
+
 function renderFileList() {
   // FILE AREA
   const list = document.getElementById("fileList");
 
   // FILE BTNS
   list.innerHTML = files.map(file => {
+    const flagState = getFileFlagState(file);
     return `
-      <button class="file-item ${file.status}${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
-        ${file.name}
+      <button class="file-item ${file.status}${flagState ? ` flag-${flagState}` : ""}${file.id === selectedFileId ? " selected" : ""}" data-file-id="${file.id}">
+        <span class="file-name">${escapeHtml(file.name)}</span>
         <span class="status ${file.status}">${file.status}</span>
       </button>
     `;
@@ -258,10 +263,12 @@ async function refreshFileStatuses() {
       file.issues = Array.isArray(job.issues) ? job.issues : [];
       const nextStatus = file.reviewStatus || job.processState;
       const statusChanged = file.status !== nextStatus;
+      const nextFlagState = job.flagState || job.issueState || "unknown";
+      const flagChanged = file.flagState !== nextFlagState;
+      file.flagState = nextFlagState;
 
       if (statusChanged) {
         file.status = nextStatus;
-        listChanged = true;
 
         // MOVE DONE FILE UP
         if (job.processState === "processed" && nextStatus === "processed") {
@@ -269,6 +276,7 @@ async function refreshFileStatuses() {
           files.unshift(file);
         }
       }
+      if (statusChanged || flagChanged) listChanged = true;
 
     });
 
@@ -407,6 +415,7 @@ importButton.addEventListener("click", async () => {
         path: filePath || null,
         documentUrl: importedDocument.documentUrl,
         importId: importedDocument.importId,
+        flagState: "pending",
         issues: []
       };
     });

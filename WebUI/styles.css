@@ -156,6 +156,18 @@ body {
   background: #fecaca;
 }
 
+.file-name {
+  display: block;
+}
+
+.file-item.flag-red .file-name {
+  color: #b91c1c;
+}
+
+.file-item.flag-yellow .file-name {
+  color: #a16207;
+}
+
 /* FILE STATUS */
 .status {
   display: block;
