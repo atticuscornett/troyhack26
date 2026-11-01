@@ -237,12 +237,17 @@ def find_personal_privacy(page_text, page_num):
             pii_issues[str(sentence_id)]["reasons"].add(chunk["entity_group"])
 
     # Add reasons to explanation and remove the reasons set from the final output
+    cleaned_pii_issues = {}
     for i in pii_issues:
+        if len(pii_issues[i]["reasons"]) == 1 and list(pii_issues[i]["reasons"])[0] == "private_person":
+            break
+
         pii_issues[i]["explanation"] += ", ".join(pii_issues[i]["reasons"])
         del pii_issues[i]["reasons"]
+        cleaned_pii_issues[i] = pii_issues[i]
 
     # Return the values of the dictionary as a list
-    return pii_issues.values()
+    return cleaned_pii_issues.values()
 
 def find_law_enforcement_records(page_text):
     print("Not yet implemented")

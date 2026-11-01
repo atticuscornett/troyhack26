@@ -6,7 +6,7 @@ OLLAMA_MODEL = "qwen3.5:4b"
 SIMILARITY_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 SIMILARITY_THRESHOLD: float = 0.25
-WINDOW_SIZE: int = 3
+WINDOW_SIZE: int = 1
 
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModel, AutoTokenizer
@@ -104,7 +104,11 @@ def llm_semantic_analysis(filtered_semantic_matches, task_description, flag_name
             model=OLLAMA_MODEL, 
             prompt=prompt,
             format='json', 
-            options={'temperature': 0.0}
+            options={
+                "temperature": 0.0,
+                "num_predict": 300,
+                "num_ctx": 4096,
+            }
         )
         print("LLM response received.")
         print(response['response'])
