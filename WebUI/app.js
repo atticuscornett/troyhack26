@@ -8,6 +8,16 @@ let pdfRenderId = 0;
 const pageViewports = new Map();
 let highlightFocusTimer = null;
 
+function isPdfProcessing(file) {
+  return ["queued", "converting", "processing"].includes(file?.status);
+}
+
+function updatePdfProcessingIndicator(file) {
+  const indicator = document.getElementById("pdfProcessingIndicator");
+  const isSelected = file?.id === selectedFileId;
+  indicator.hidden = !(isSelected && isPdfProcessing(file) && file.documentUrl);
+}
+
 function drawHighlights(file) {
   document.querySelectorAll('.highlight-layer').forEach(layer => {
     layer.replaceChildren();
@@ -269,6 +279,7 @@ async function refreshFileStatuses() {
     }
     const selected = files.find(file => file.id === selectedFileId);
     if (selected) {
+      updatePdfProcessingIndicator(selected);
       renderHighlightDetails(selected);
       drawHighlights(selected);
       updateReviewActions(selected);
@@ -286,6 +297,7 @@ async function selectFile(fileId) {
   const selectedFile = files.find(file => file.id === fileId);
   selectedFileId = fileId;
   updateReviewActions(selectedFile);
+  updatePdfProcessingIndicator(selectedFile);
 
   // SELECTED BUTTON
   document.querySelectorAll(".file-item").forEach(button => {
