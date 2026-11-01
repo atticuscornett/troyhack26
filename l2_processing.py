@@ -79,7 +79,7 @@ def find_keyword(sentences, page_num) -> list:
 
 
 def find_weapons(sentences, page_num):
-    condition = "Does the text discuss weapons, military systems, and emerging technologies?"
+    condition = "weapons, military systems, and emerging technologies?"
     keywords = ["weapon", "unamanned", "animal testing", "aerial", "remotely", "nuclear", "laser", "particle", "directed energy"]
 
     print("Finding similar sentences to 'weapons, military systems, and emerging technologies':")
@@ -103,8 +103,8 @@ def find_weapons(sentences, page_num):
     return issues
 
 def find_cyber(sentences, page_num):
-    condition = "Does the text discuss cybersecurity, intelligence, and operational security?"
-    keywords = ["cyber", "traffic", "data", "vulnerabilities", "detail", "description"]
+    condition = "cybersecurity, intelligence, and operational security?"
+    keywords = ["cyber", "traffic", "vulnerabilities", "detail", "description"]
 
     print("Finding similar sentences to 'cybersecurity, intelligence, and operational security':")
     semantic_matches = sf.find_similar_sentences(sentences, condition)
@@ -125,7 +125,7 @@ def find_cyber(sentences, page_num):
     return issues
 
 def find_medical(sentences, page_num):
-    condition = "Does the text discuss medical, physiological, chemical, and biological research?"
+    condition = "medical, physiological, chemical, and biological research?"
     keywords = ["physiologic", "oxygen", "research", "hypobaria", "hypopoxia", "chemical", "biological", "toxin", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
     
     print("Finding similar sentences to 'medical, physiological, chemical, and biological research':")
@@ -147,7 +147,7 @@ def find_medical(sentences, page_num):
     return issues
 
 def find_policy(sentences, page_num):
-    condition = "Does the text discuss national security, policy, and sensitive government information?"
+    condition = "national security, policy, and sensitive government information?"
     keywords = ["operation", "dopsr", "exercise", "security", "current", "training", "tactics", "procedures", "deploy", "wing", "unit", "sensitive"]
 
     print("Finding similar sentences to 'national security, policy, and sensitive government information':")
@@ -169,7 +169,7 @@ def find_policy(sentences, page_num):
     return issues
 
 def find_inter(sentences, page_num):
-    condition = "Does the text discuss interagency and interservice coordination?"
+    condition = "interagency and interservice coordination?"
     keywords = ["washington", "national", "international", "president", "secretary", "dod", ]
 
     print("Finding similar sentences to 'national security, policy, and sensitive government information':")
