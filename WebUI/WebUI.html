@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>PDF Highlight Review</title>
 
-  <link rel="stylesheet" href="styles.css?v=highlights-10">
+  <link rel="stylesheet" href="styles.css?v=highlights-14">
 </head>
 
 <body>
@@ -27,7 +27,14 @@
     <!-- CENTER PDF PANEL -->
     <section id="pdfPanel">
       <h1 id="docTitle">Document Title</h1>
-      <div id="pdfContainer"></div>
+      <div class="pdf-viewer-shell">
+        <div id="pdfContainer"></div>
+        <div id="pdfProcessingIndicator" class="pdf-processing-indicator" role="status" aria-live="polite" hidden>
+          <span class="pdf-processing-spinner" aria-hidden="true"></span>
+          <p>Analyzing PDF…</p>
+          <small>Highlights will appear here when the review is complete.</small>
+        </div>
+      </div>
     </section>
 
     <!-- RIGHT HIGHLIGHTS PANEL -->
@@ -44,7 +51,7 @@
 
   <script type="text/javascript" src="/eel.js"></script>
 
-  <script src="app.js?v=highlights-9"></script>
+  <script src="app.js?v=highlights-10"></script>
 </body>
 
 </html>
