@@ -132,6 +132,13 @@ function renderHighlightDetails(file) {
       const secondTop = Math.max(secondRectangle[1], secondRectangle[3]);
       return secondTop - firstTop;
     });
+  const counts = issues.reduce((total, issue) => {
+    const color = String(issue.color || "").toLowerCase();
+    if (color === "red" || color === "yellow") total[color] += 1;
+    return total;
+  }, { red: 0, yellow: 0 });
+
+  document.getElementById("highlightCounts").textContent = `(${counts.red} red, ${counts.yellow} yellow)`;
 
   if (!issues.length) {
     details.innerHTML = "<p>No located issues found.</p>";

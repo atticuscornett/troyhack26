@@ -22,6 +22,13 @@
   text-align: center;
 }
 
+#highlightCounts {
+  color: #475569;
+  font-size: 0.7em;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 #filePanel {
   display: flex;
   flex-direction: column;
