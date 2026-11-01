@@ -6,13 +6,17 @@ import l2_processing as l2p
 import threading
 import asyncio
 import time
-import copy
+import random
 
 file_statuses = {}
 
+currently_proccessing = 0
+
 async def run_job(job_file_path):
+    global currently_proccessing
+
     new_file_status = {
-        "processState": "processing",
+        "processState": "pending",
         "approvalState": "pending",
         "filePath": job_file_path,
         "fileName": job_file_path.split("/")[-1],
@@ -22,12 +26,21 @@ async def run_job(job_file_path):
 
     file_statuses[job_file_path] = new_file_status
 
+
+    while currently_proccessing >= 3:
+        await asyncio.sleep(random.random() * 6)  # Wait for a random time between 0 and 6 seconds before checking again
+
+    currently_proccessing += 1
+
+    new_file_status["processState"] = "processing"
+
     file_issues = l1p.scan_file(job_file_path)
 
     file_issues.extend(l2p.scan_file(job_file_path))
 
     new_file_status["processState"] = "processed"
     new_file_status["issues"] = file_issues
+    currently_proccessing -= 1
 
     highest_severity = "unknown"
     for issue in file_issues:
