@@ -280,7 +280,22 @@ def find_personal_privacy(page_text, page_num):
     return cleaned_pii_issues.values()
 
 def find_law_enforcement_records(page_text):
-    print("Not yet implemented")
+    keywords = ["deliberation", "draft", "legal", "predecision", "risk", "evaluation", "advice", "counsel", "attorney", "attorneys", "lawyer", "lawyers"]
+    
+    semantic_matches = sf.find_similar_sentences(sentences, "An agency was reviewing a draft policy and weighing possible courses of action.")
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
+    
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        issues.append({
+            "text": sentence,
+            "flag": "List 1 - Internal Deliberation or Legal Advice",
+            "page": page_num,
+            "color": "red",
+            "explanation": filtered_semantic_matches[1][index]
+        })
+        
+    return issues
 
 def find_financial_regulation(page_text):
     print("Not yet implemented")
