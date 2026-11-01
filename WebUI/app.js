@@ -110,7 +110,18 @@ function escapeHtml(value) {
 // SHOW FILE ISSUES
 function renderHighlightDetails(file) {
   const details = document.getElementById("highlightDetails");
-  const issues = (file.issues || []).filter(issue => issue.location === "available");
+  const issues = (file.issues || [])
+    .filter(issue => issue.location === "available")
+    .sort((first, second) => {
+      const pageDifference = Number(first.page) - Number(second.page);
+      if (pageDifference) return pageDifference;
+
+      const firstRectangle = first.rectangles?.[0] || [0, 0, 0, 0];
+      const secondRectangle = second.rectangles?.[0] || [0, 0, 0, 0];
+      const firstTop = Math.max(firstRectangle[1], firstRectangle[3]);
+      const secondTop = Math.max(secondRectangle[1], secondRectangle[3]);
+      return secondTop - firstTop;
+    });
 
   if (!issues.length) {
     details.innerHTML = "<p>No located issues found.</p>";
@@ -174,8 +185,31 @@ renderFileList();
 // UPDATE FILE STATUSES
 async function refreshFileStatuses() {
   try {
+    const importStatuses = await eel.get_import_statuses()();
     const jobStatuses = await eel.get_processing_statuses()();
     let listChanged = false;
+    let selectedFileToLoad = null;
+
+    importStatuses.forEach(importStatus => {
+      const file = files.find(item => item.importId === importStatus.importId);
+      if (!file) return;
+
+      const canUpdateStatus = importStatus.state !== "processing" || file.status !== "processed";
+      const statusChanged = canUpdateStatus && file.status !== importStatus.state;
+      const documentReady = !file.documentUrl && importStatus.documentUrl;
+
+      if (canUpdateStatus) {
+        file.status = importStatus.state;
+      }
+      if (importStatus.filePath) file.path = importStatus.filePath;
+      if (importStatus.documentUrl) file.documentUrl = importStatus.documentUrl;
+      if (importStatus.error) file.error = importStatus.error;
+
+      if (statusChanged) listChanged = true;
+      if (documentReady && file.id === selectedFileId) {
+        selectedFileToLoad = file;
+      }
+    });
 
     jobStatuses.forEach(job => {
       const file = files.find(item => item.path === job.filePath);
@@ -203,6 +237,9 @@ async function refreshFileStatuses() {
 
     if (listChanged) {
       renderFileList();
+    }
+    if (selectedFileToLoad) {
+      selectFile(selectedFileToLoad.id);
     }
     const selected = files.find(file => file.id === selectedFileId);
     if (selected) {
@@ -239,8 +276,13 @@ async function selectFile(fileId) {
 
   // NO LOCAL PDF URL
   if (!selectedFile.documentUrl) {
+    const message = selectedFile.status === "error"
+      ? selectedFile.error || "Could not convert DOCX."
+      : selectedFile.status === "queued"
+        ? "DOCX conversion is queued..."
+        : "Converting DOCX...";
     pdfContainer.innerHTML = `
-      <p><strong>${selectedFile.name}</strong> has no local PDF URL.</p>
+      <p><strong>${selectedFile.name}</strong> ${message}</p>
     `;
     return;
   }
@@ -273,44 +315,43 @@ document.getElementById("fileList").addEventListener("click", event => {
 const importButton = document.getElementById("importButton");
 const importMessage = document.getElementById("importMessage");
 
-// IMPORT PDF
+// IMPORT FILES
 importButton.addEventListener("click", async () => {
-  importMessage.textContent = "Choose a PDF...";
+  importMessage.textContent = "Choose files...";
   importButton.disabled = true;
 
   try {
     // GET DOCUMENT INFO FROM PYTHON
-    const importedDocument = await eel.import_pdf()();
+    const importedDocuments = await eel.import_pdfs()();
 
-    // NO FILE SELECTED
-    if (!importedDocument) {
-      importMessage.textContent = "No file selected.";
+    // NO FILES
+    if (!importedDocuments.length) {
+      importMessage.textContent = "No files selected.";
       return;
     }
 
-    // DOCUMENT PATH
-    const filePath = importedDocument.filePath;
+    // ADD FILES
+    const importedFiles = importedDocuments.map(importedDocument => {
+      const filePath = importedDocument.filePath;
+      return {
+        id: `report-${crypto.randomUUID()}`,
+        name: importedDocument.displayName || filePath.split(/[\\/]/).pop(),
+        status: importedDocument.state || "processing",
+        path: filePath || null,
+        documentUrl: importedDocument.documentUrl,
+        importId: importedDocument.importId,
+        issues: []
+      };
+    });
 
-    // ADD SELECTED FILE
-    const importedFile = {
-      id: `report-${crypto.randomUUID()}`,
-      name: filePath.split(/[\\/]/).pop(),
-      status: "processing",
-      path: filePath,
-      documentUrl: importedDocument.documentUrl,
-      issues: []
-    };
-
-    files.push(importedFile);
+    files.push(...importedFiles);
     renderFileList();
-    selectFile(importedFile.id);
+    selectFile(importedFiles[0].id);
 
-    // DOCUMENT READY FOR PDF.JS
-    console.log(filePath);
-    importMessage.textContent = "Import started.";
+    importMessage.textContent = `${importedFiles.length} import${importedFiles.length === 1 ? "" : "s"} started.`;
   } catch (error) {
     console.error(error);
-    importMessage.textContent = "Could not select a PDF.";
+    importMessage.textContent = "Could not import files.";
   } finally {
     importButton.disabled = false;
   }

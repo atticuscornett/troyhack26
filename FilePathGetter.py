@@ -1,7 +1,13 @@
 from pathlib import Path
+import os
+import queue
 import secrets
+import threading
 import tkinter as tk
 from tkinter import filedialog
+
+# SKIP LLM
+os.environ["SKIP_LLM"] = "1"
 
 from bottle import Bottle, HTTPError, static_file
 from job_dispatch import get_file_statuses, start_job
@@ -22,12 +28,84 @@ web_app = Bottle()
 # OPEN DOCUMENTS
 open_documents = {}
 located_issues = {}
+import_statuses = {}
+
+# CONVERSION QUEUE
+conversion_queue = queue.Queue()
 
 # PDF.JS ASSETS
 PDFJS_FOLDER = PROJECT_FOLDER / "WebUI" / "vendor" / "pdfjs"
 
 # PDF PREVIEW FOLDER
 PREVIEW_FOLDER = PROJECT_FOLDER / "WebUI" / "pdf_previews"
+
+# GENERATED PDF FOLDER
+GENERATED_PDF_FOLDER = PROJECT_FOLDER / "generated_pdfs"
+
+
+def convert_docx_file(docx_path):
+    """CONVERT DOCX TO PDF."""
+    try:
+        from docx2pdf import convert
+    except ImportError as error:
+        raise RuntimeError("DOCX conversion requires docx2pdf.") from error
+
+    # OUTPUT FOLDER
+    GENERATED_PDF_FOLDER.mkdir(parents=True, exist_ok=True)
+
+    # OUTPUT PATH
+    pdf_path = GENERATED_PDF_FOLDER / f"{secrets.token_urlsafe(12)}-{docx_path.stem}.pdf"
+
+    # CONVERT
+    convert(str(docx_path), str(pdf_path))
+
+    # CHECK PDF
+    if not pdf_path.is_file():
+        raise RuntimeError(f"Could not convert {docx_path.name} to PDF.")
+
+    return pdf_path
+
+
+def process_docx_import(import_id, source_path):
+    """CONVERT AND START DOCX IMPORT."""
+    import_statuses[import_id]["state"] = "converting"
+
+    try:
+        # CONVERT DOCX
+        pdf_path = convert_docx_file(source_path)
+        file_path = str(pdf_path)
+        located_issues.pop(file_path, None)
+
+        # URL
+        document_id = secrets.token_urlsafe(24)
+        open_documents[document_id] = pdf_path
+
+        # START JOB
+        import_statuses[import_id].update({
+            "state": "processing",
+            "filePath": file_path,
+            "documentUrl": f"/documents/{document_id}",
+        })
+        start_job(file_path)
+    except Exception as error:
+        import_statuses[import_id].update({
+            "state": "error",
+            "error": str(error),
+        })
+
+
+def run_conversion_queue():
+    """RUN DOCX CONVERSIONS."""
+    while True:
+        import_id, source_path = conversion_queue.get()
+        try:
+            process_docx_import(import_id, source_path)
+        finally:
+            conversion_queue.task_done()
+
+
+# START CONVERTER
+threading.Thread(target=run_conversion_queue, daemon=True).start()
 
 
 def locate_issue_rectangles(document, issue):
@@ -99,9 +177,9 @@ def serve_document(document_id):
     )
 
 
-# IMPORT PDF
+# IMPORT FILES
 @eel.expose
-def import_pdf():
+def import_pdfs():
 
     # NATIVE FILE PICKER
     dialog = tk.Tk()
@@ -109,36 +187,75 @@ def import_pdf():
     dialog.attributes("-topmost", True)
 
     try:
-        selected_path = filedialog.askopenfilename(
+        selected_paths = filedialog.askopenfilenames(
             parent=dialog,
-            title="Choose a PDF",
-            filetypes=[("PDF files", "*.pdf")],
+            title="Choose Files",
+            filetypes=[
+                ("Supported files", "*.pdf *.docx"),
+                ("PDF files", "*.pdf"),
+                ("Word files", "*.docx"),
+            ],
         )
     finally:
         dialog.destroy()
 
-    # NO FILE SELECTED
-    if not selected_path:
-        return None
+    # NO FILES
+    if not selected_paths:
+        return []
+
+    selected_documents = []
+    for selected_path in selected_paths:
+        # SOURCE
+        source_path = Path(selected_path).resolve()
+        selected_documents.append((source_path, source_path.name))
+
+    imported_documents = []
+    for source_path, display_name in selected_documents:
+        # QUEUE DOCX
+        if source_path.suffix.lower() == ".docx":
+            import_id = secrets.token_urlsafe(24)
+            import_statuses[import_id] = {
+                "state": "queued",
+                "displayName": display_name,
+            }
+            conversion_queue.put((import_id, source_path))
+            imported_documents.append({
+                "importId": import_id,
+                "displayName": display_name,
+                "state": "queued",
+            })
+            continue
+
+        # PDF
+        pdf_path = source_path
+        file_path = str(pdf_path)
+        located_issues.pop(file_path, None)
+
+        # URL
+        document_id = secrets.token_urlsafe(24)
+        open_documents[document_id] = pdf_path
+
+        # START JOB
+        start_job(file_path)
+
+        # ADD DOCUMENT
+        imported_documents.append({
+            "filePath": file_path,
+            "displayName": display_name,
+            "state": "processing",
+            "documentUrl": f"/documents/{document_id}",
+        })
+
+    return imported_documents
 
 
-    # PDF FILE
-    pdf_path = Path(selected_path).resolve()
-    file_path = str(pdf_path)
-    located_issues.pop(file_path, None)
-
-    # DOCUMENT URL
-    document_id = secrets.token_urlsafe(24)
-    open_documents[document_id] = pdf_path
-
-    # START OTHER PYTHON CODE
-    start_job(file_path)
-
-    # RETURN DOCUMENT INFO
-    return {
-        "filePath": file_path,
-        "documentUrl": f"/documents/{document_id}",
-    }
+# GET IMPORT STATUSES
+@eel.expose
+def get_import_statuses():
+    statuses = []
+    for import_id, status in import_statuses.items():
+        statuses.append(dict(status, importId=import_id))
+    return copy.deepcopy(statuses)
 
 
 # GET FILE STATUSES
