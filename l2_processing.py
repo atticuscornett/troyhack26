@@ -2,16 +2,17 @@ import pymupdf
 import json
 import re
 import time
-from ollama import chat
-from ollama import ChatResponse
+import bisect
 
 located_flags: list[dict] = []
+
+import shared_functions as sf
 
 def scan_file(pdf_file_name):
     global located_flags
     doc = pymupdf.open(pdf_file_name)
 
-    # Measure performanc
+    # Measure performance
     overall_time_start = time.perf_counter()
 
     page_num = 0
@@ -44,8 +45,8 @@ def scan_file(pdf_file_name):
 
 def find_keyword(sentences, page_num) -> list:
     # Get all the pieces in parentheses
-    matches = []
-    keywords = ["animal testing", "directed energy", "weapon", "unamanned", "aerial", "remotely", "cyber", "physiologic", "oxygen", "hypobaria", "hypopoxia", "laser", "particle", "space", "nuclear", "research", 
+    matching_sentences = []
+    keywords = ["animal testing", "directed energy", "weapon", "physiologic", "oxygen", "hypobaria", "hypopoxia", "aerial", "unamanned", "space", "laser", "research", "particle",
               "operation", "exercise", "security", "chemical", "biological", "toxin", "current", "vulnerability", "training", "air", "tactics", "procedures", "deploy", "washington", "national", "international", "president", "secretary",
               "foreign", "dod", "data", "information", "traffic", "dopsr", "wing", "unit", "sensitive", "perfuoroalkyl", "pfas", "perfluorooctanoic", "pfoa", "perfoluorooctance", "pfos"]
 
@@ -62,25 +63,49 @@ def find_keyword(sentences, page_num) -> list:
             pattern = r'\b' + re.escape(keyword) + r'\b'
 
             if re.search(pattern, sentence_lower):
+                matching_sentences.append(sentence_num)
+                break
+    return matching_sentences
 
-                print(f"Keyword found: {keyword}")
 
-                matches.append({
-                    "page": page_num,
-                    "sentence_number": sentence_num,
-                    "text": sentence.strip(),
-                    "Keyword": keyword
-                })
+def find_weapons(sentences, page_num):
+    condition = "Does the text discuss weapons, military systems, and emerging technologies?"
+    keywords = ["weapon", "unamanned", "animal testing", "aerial", "remotely", "nuclear", "laser", "particle", "directed energy"]
 
-    return matches
+    print("Finding similar sentences to 'weapons, military systems, and emerging technologies':")
+    semantic_matches = sf.find_similar_sentences(sentences, condition)
+    filtered_semantic_matches = sf.threshold_cut_or_keyword(semantic_matches, keywords, threshold=0.3)
 
-def ollama_compare(page_text, page_num):
-    conditions = ["Does the text discuss weapons, military systems, and emerging technologies?",
-                  "Does the text discuss cybersecurity, intelligence, and operational security?",
-                  "Does the text discuss medical, physiological, chemical, and biological research?",
-                  "Does the text discuss national security, policy, and sensitive government information?",
-                  "Does the text discuss interagency and interservice coordination?"]
+    issues = []
+    for index, sentence in enumerate(filtered_semantic_matches[0]):
+        print(f"Filtered semantic match {index + 1}: {sentence}")
+        print(f"Reason: {filtered_semantic_matches[1][index]}")
+        issues.append({
+            "text": sentence,
+            "flag": "List 2 - Weapons, Military Systems, and Emerging Technologies",
+            "page": page_num,
+            "color": "red", # Change color to depend on confidence
+            "explanation": filtered_semantic_matches[1][index]
+        })
 
+def find_cyber(sentences, page_num):
+    condition = "Does the text discuss cybersecurity, intelligence, and operational security?"
+    keywords = []
+
+
+def find_medical(sentences, page_num):
+    condition = "Does the text discuss medical, physiological, chemical, and biological research?"
+    keywords = []
+
+
+def find_policy(sentences, page_num):
+    condition = "Does the text discuss national security, policy, and sensitive government information?"
+    keywords = []
+
+
+def find_inter(sentences, page_num):
+    condition = "Does the text discuss interagency and interservice coordination?"
+    keywords = []
     
     
 if __name__ == "__main__":
