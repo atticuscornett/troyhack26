@@ -182,3 +182,4 @@ cython_debug/
 
 # Ignore added PDFs from docx2pdf conversion
 /generated_pdfs
+/.idea
