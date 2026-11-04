@@ -19,11 +19,20 @@ aims to streamline and assist the review process by identifying which documents 
 ## Features
 
 TODO: Expand on the features
-- Issue Highlighting
-- Quick Navigation
-- Document Triage
-- Batch Processing
-- Fully Offline
+### Issue Highlighting
+### Quick Navigation
+### Document Triage 
+### Batch Processing
+
+
+### Fully Offline
+Ice Scraper can be used fully offline (after it is run online at least once to install models) by setting the following environment variables before running:
+```shell
+set HF_HUB_OFFLINE=1
+set HF_DATASETS_OFFLINE=1
+set TRANSFORMERS_OFFLINE=1
+```
+This allows critical data to stay on device, never touching the cloud, ensuring sensitive information never leaves the host machine.
 
 ## Program Design
 ![Program Modules](./diagrams/program_modules.png)
