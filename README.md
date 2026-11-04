@@ -24,9 +24,10 @@ TODO: Add a description of the features of the project.
 TODO: Add description of program design and the collaborative and maintenance benefits of this design.
 
 TODO: Add a diagram and explanation of the design of each list check module.
+![Module Functions](./diagrams/module_functions.png)
 
 ## Detection Techniques
-
+![Detection Techniques](./diagrams/decision_tree.png)
 TODO: Add a description of how the program flags potentially sensitive content.
 
 ## Running
