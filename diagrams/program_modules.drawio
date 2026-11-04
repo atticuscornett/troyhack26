@@ -1,9 +1,12 @@
 <mxfile host="Electron">
   <diagram name="Page-1" id="yeJKRbZwVnPW-SOSJt9_">
-    <mxGraphModel dx="1001" dy="730" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="514" dy="321" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="C6OAfE-RqMQj5t7W1gak-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=none;dashed=1;dashPattern=8 8;" value="" vertex="1">
+          <mxGeometry height="310" width="120" x="220" y="160" as="geometry" />
+        </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-40" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;dashed=1;dashPattern=8 8;" value="" vertex="1">
           <mxGeometry height="310" width="290" x="540" y="160" as="geometry" />
         </mxCell>
@@ -44,8 +47,8 @@
         <mxCell id="C6OAfE-RqMQj5t7W1gak-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Web GUI&lt;div&gt;Front-end&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="250" y="225" as="geometry" />
         </mxCell>
-        <mxCell id="C6OAfE-RqMQj5t7W1gak-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Python GUI Backend" vertex="1">
-          <mxGeometry height="30" width="60" x="250" y="405" as="geometry" />
+        <mxCell id="C6OAfE-RqMQj5t7W1gak-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Python GUI Back-end" vertex="1">
+          <mxGeometry height="30" width="70" x="245" y="405" as="geometry" />
         </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-11" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;strokeWidth=3;">
           <mxGeometry relative="1" as="geometry">
@@ -66,9 +69,6 @@
         </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Job Dispatcher" vertex="1">
           <mxGeometry height="30" width="60" x="410" y="405" as="geometry" />
-        </mxCell>
-        <mxCell id="C6OAfE-RqMQj5t7W1gak-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=none;dashed=1;dashPattern=8 8;" value="" vertex="1">
-          <mxGeometry height="310" width="120" x="220" y="160" as="geometry" />
         </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;GUI Logic Loop&lt;/font&gt;" vertex="1">
           <mxGeometry height="30" width="120" x="220" y="170" as="geometry" />

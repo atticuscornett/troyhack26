@@ -104,7 +104,7 @@
           <mxGeometry height="15" width="15" x="513" y="435" as="geometry" />
         </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-32" parent="1" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=light-dark(#505050, #ffffff);labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.concepts.clock;labelPerimeter=1;" value="" vertex="1">
-          <mxGeometry height="15" width="15" x="615" y="331" as="geometry" />
+          <mxGeometry height="15" width="15" x="615" y="315" as="geometry" />
         </mxCell>
         <mxCell id="C6OAfE-RqMQj5t7W1gak-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="List 1&lt;div&gt;Check Module&lt;/div&gt;" vertex="1">
           <mxGeometry height="30" width="60" x="570" y="225" as="geometry" />
