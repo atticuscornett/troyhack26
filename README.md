@@ -12,19 +12,39 @@ TODO: Add brief description of project and credits.
 
 ## Objective
 
-TODO: Add a description of the objective of the project.
+The Ice Scraper is a tool that scans documents for topics that may need to be redacted before being shared with the public.
+It does not make the final decision on whether a document is ready to publish or not. Rather, it is a tool that 
+aims to streamline and assist the review process by identifying which documents and what parts are most likely to need extra attention.
 
 ## Features
 
-TODO: Add a description of the features of the project.
+TODO: Expand on the features
+- Issue Highlighting
+- Quick Navigation
+- Document Triage
+- Batch Processing
+- Fully Offline
 
 ## Program Design
 ![Program Modules](./diagrams/program_modules.png)
 
-TODO: Add description of program design and the collaborative and maintenance benefits of this design.
+### System Modularity
+The Ice Scraper is designed with modularity in mind, which allowed for easier collaboration during the hackathon,
+but also allows for easier maintenance and future development.
+The program is divided into two main sections: the GUI logic loop and the job logic loop, with a job dispatcher acting as a middleman between them.
+The front-end of the GUI provides a web-based interface for users to easily interact with the program and organize and triage issues with documents.
+The Python back-end of the GUI loop passes requests to the job dispatcher and receives results back to display to the user.
+The job dispatcher maintains the status of all the requested jobs and creates new jobs on new threads upon request.
+The job logic loop handles the actual document processing and issue detection, with modules for each list of rules.
+Additional modules can easily be added to the job logic loop to expand the program's capabilities.
 
-TODO: Add a diagram and explanation of the design of each list check module.
+
 ![Module Functions](./diagrams/module_functions.png)
+### Module Functions
+Modules are further broken down into individual functions for each rule.
+Each function checks for violations of a specific rule and adds to the list of issues if one is found.
+Because each rule is its own function, different rules can use the best detection technique for its specific task.
+This allows for greater expandability with new rules in the future, as well as allowing for a better balance between accuracy and performance.
 
 ## Detection Techniques
 ![Detection Techniques](./diagrams/decision_tree.png)
