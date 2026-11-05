@@ -1,7 +1,10 @@
 # The Ice Scraper - Troy Hack 2026
-##### This project was created for Troy Hack 2026, a 24-hour hackathon hosted by Troy University. It received 3rd place in the competition.
+**An automated document review tool for identifying potentially sensitive content in documents.**
 
-TODO: Add brief description of project and credits.
+*Created by [@atticuscornett](https://github.com/atticuscornett), [@CL-16](https://github.com/CL-16), and [@Pokeplush12](https://github.com/Pokeplush12)*
+
+*This project was created for Troy Hack 2026, a 24-hour hackathon hosted by Troy University. It received 3rd place in the competition.*
+
 
 ## Table of Contents
 - [Objective](#objective)
@@ -73,4 +76,15 @@ TODO: Add a description of how the program flags potentially sensitive content.
 
 ## Running
 
-TODO: Add instructions for running the program, including any dependencies or setup required.
+1. Clone the repository to your local machine
+2. Install Python if it is not already installed (tested with Python 3.15.2)
+3. Install the required dependencies using pip
+    ```shell
+    pip install -r requirements.txt
+    ```
+4. Run the application
+   - Note: The Ice Scraper must be run online at least once to install the required models from Hugging Face.
+     After first run, the program can be run fully offline (see Features section for instructions).
+   ```shell
+    python FilePathGetter.py
+    ```
