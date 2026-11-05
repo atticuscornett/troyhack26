@@ -18,12 +18,24 @@ aims to streamline and assist the review process by identifying which documents 
 
 ## Features
 
-TODO: Expand on the features
 ### Issue Highlighting
-### Quick Navigation
-### Document Triage 
-### Batch Processing
+Ice Scraper identifies and highlights potentially sensitive content and provides a list of issues for the user to review.
+The highlights panel allows the user to remove false positives and the preview is updated in real time to reflect the changes.
+High-confidence primary issues are highlighted in red, while secondary possible issues are highlighted in yellow.
 
+### Quick Navigation
+The highlights panel also identifies the type of issues that were found, and clicking on the issue will jump straight to that part of the document.
+This adds additional convenience and efficiency to the review process.
+
+### Document Triage 
+Documents that have not been reviewed yet appear at the top of the documents list.
+Documents that have been reviewed are moved to the bottom of the list and show their approval status.
+All documents show their processing status, and the color of the document title indicates the highest severity of issues found in that document.
+
+### Batch Processing
+The Ice Scraper can import and process multiple documents at once, allowing for faster review of large batches of documents.
+Job processing and queuing is done in the background, allowing the user to continue reviewing documents while new ones are being processed.
+The program supports both PDF and Word documents.
 
 ### Fully Offline
 Ice Scraper can be used fully offline (after it is run online at least once to install models) by setting the following environment variables before running:
@@ -32,7 +44,7 @@ set HF_HUB_OFFLINE=1
 set HF_DATASETS_OFFLINE=1
 set TRANSFORMERS_OFFLINE=1
 ```
-This allows critical data to stay on device, never touching the cloud, ensuring sensitive information never leaves the host machine.
+This allows critical data to stay on device, never touching the cloud, ensuring sensitive information doesn't leave the host machine.
 
 ## Program Design
 ![Program Modules](./diagrams/program_modules.png)
