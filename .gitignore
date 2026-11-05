@@ -182,4 +182,10 @@ cython_debug/
 
 # Ignore added PDFs from docx2pdf conversion
 /generated_pdfs
+
+# Ignore test data
+/APEX Guidance
+/SPR Fake Papers with Triggers
+
+# Ignore JetBrains config files
 /.idea
