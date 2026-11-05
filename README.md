@@ -72,7 +72,36 @@ This allows for greater expandability with new rules in the future, as well as a
 
 ## Detection Techniques
 ![Detection Techniques](./diagrams/decision_tree.png)
-TODO: Add a description of how the program flags potentially sensitive content.
+
+Issues are detected using a combination of techniques, generally preferring a balance of accuracy and performance.
+The diagram above shows the decision tree determining which detection technique should be used for each rule.
+Because the rules are broken down into individual functions, each rule can utilize the best detection technique for its specific task.
+
+The detection techniques used are:
+- Classifier models
+- Semantic similarity (using a text embedding model)
+- Regular expressions
+
+### Classifier Models
+OpenAI's PII classifier model, `"openai/privacy-filter"`, is used to detect sentences that contain personally identifiable information (PII).
+This model is reasonably accurate and fast, making it a good choice for this specific task.
+Additionally, the model identifies the type of PII that was found, allowing for issues to have more specific information.
+Classifiers are the most preferred detection technique because they are most accurate, but they are limited to the 
+topics they are trained on, so they cannot be used for most rules.
+
+### Semantic Similarity
+Semantic similarity is used to detect sentences that are similar in topic or meaning to a list of sensitive topics.
+The model used is `"BAAI/bge-base-en-v1.5"`, which is a text embedding model used to convert sentences into vectors.
+The similarity is then determined using cosine similarity, and if the similarity is above a certain threshold, it is considered a match.
+If a high-confidence match is found, the sentence is added to the list of issues with the topic that it was found to be similar to.
+If a medium-confidence match is found, the sentence is also compared to a list of known topic keywords, and if a match is found, it is added to the list of issues.
+Most rules use semantic similarity because it is more accurate than regular expressions and can be used for a wider range of topics than classifiers.
+
+### Regular Expressions
+Regular expressions are used only when a rule expects a specific format.
+They are the fastest of the three detection techniques, but they are also the least accurate and most rigid.
+This can lead to many false positives and false negatives, so they are avoided unless they are particularly well-suited for a rule.
+
 
 ## Running
 
