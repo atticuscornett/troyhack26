@@ -1,24 +1,35 @@
-import os
-# SKIP_LLM = os.getenv("SKIP_LLM") == "1"
-SKIP_LLM = True  # Set to True to skip LLM semantic analysis for testing purposes
+"""
+shared_functions.py
+This module contains shared functions used across multiple processing modules, primarily for semantic similarity analysis.
+Sharing these functions not only reduces code duplication, but also ensures consistency.
+It also allows the semantic similarity model to be initialized only once, improving startup time.
+"""
 
+# import os
+# SKIP_LLM = os.getenv("SKIP_LLM") == "1" # Once implemented, allow skipping of LLM analysis to speed up testing and development.
+SKIP_LLM = True  # Set to True to skip LLM semantic analysis until integration is complete
+
+
+# Ollama model used to reduce false positives in semantic similarity analysis
+# Model must be installed locally and available to Ollama.
 #OLLAMA_MODEL = "gemma4:12b"
 OLLAMA_MODEL = "qwen3.5:4b"
-#SIMILARITY_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-#SIMILARITY_MODEL = "sentence-transformers/all-mpnet-base-v2"
+
+# Hugging Face text embedding model used for semantic similarity
+# (Note: Changing this model may require adjustments to the similarity threshold and window size)
 SIMILARITY_MODEL = "BAAI/bge-base-en-v1.5"
 
+# Set global constants for similarity threshold and context window size
+# Similarity threshold when a keyword is present in the sentence (medium confidence)
 SIMILARITY_THRESHOLD: float = 0.5
+# Similarity threshold when no keyword is present in the sentence (high confidence)
+SIMILARITY_THRESHOLD_NO_KEYWORD: float = 0.6
 WINDOW_SIZE: int = 1
 
 from sentence_transformers import SentenceTransformer, util
-from transformers import AutoModel, AutoTokenizer
-import re
 import ollama
 
-#model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 model = SentenceTransformer(SIMILARITY_MODEL)
-
 
 def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float = SIMILARITY_THRESHOLD) -> list:
     """
@@ -36,6 +47,7 @@ def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float
     
     matched_windows = []
 
+    # Filter out sentences that are below the similarity threshold and create context windows for those that meet the threshold
     for idx, (sentence, score) in enumerate(zip(sentences, similarities)):
         if score >= threshold:
             start = max(0, idx - WINDOW_SIZE)
@@ -50,7 +62,7 @@ def find_similar_sentences(sentences: str, topic_sentence: str, threshold: float
             
     return matched_windows
 
-def threshold_cut_or_keyword(vector_output, keyword_list, threshold=0.6):
+def threshold_cut_or_keyword(vector_output, keyword_list, threshold=SIMILARITY_THRESHOLD_NO_KEYWORD):
     """
     Cuts or keywords to filter a list of sentences based on a similarity threshold and a list of keywords.
     """
@@ -74,6 +86,11 @@ def threshold_cut_or_keyword(vector_output, keyword_list, threshold=0.6):
     return [relavent_sentences, reasons, context_windows]
         
 def llm_semantic_analysis(filtered_semantic_matches, task_description, flag_name):
+    """
+    Uses an LLM to analyze the filtered semantic matches and provide a final evaluation to reduce false positives.
+    [Not yet implemented, will always be skipped at this time.]
+    """
+
     if SKIP_LLM:
         print("Skipping LLM semantic analysis due to SKIP_LLM environment variable.")
         return filtered_semantic_matches
@@ -115,10 +132,7 @@ def llm_semantic_analysis(filtered_semantic_matches, task_description, flag_name
             }
         )
         print("LLM response received.")
-        print(response['response'])
-        print("PLEASE IMPLEMENT PLEASE AAAAAA")
         return filtered_semantic_matches
     except Exception as e:
         print(f"Error processing batch: {e}")
         return filtered_semantic_matches
-    
