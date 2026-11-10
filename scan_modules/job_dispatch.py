@@ -1,8 +1,7 @@
 print("Starting job dispatcher...")
 
 print("Setting up list one processing...")
-import list1_processing as l1p
-import list2_processing as l2p
+from scan_modules import list1_processing as l1p, list2_processing as l2p
 import threading
 import asyncio
 import time

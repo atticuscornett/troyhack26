@@ -115,5 +115,5 @@ This can lead to many false positives and false negatives, so they are avoided u
    - Note: The Ice Scraper must be run online at least once to install the required models from Hugging Face.
      After first run, the program can be run fully offline (see Features section for instructions).
    ```shell
-    python FilePathGetter.py
+    python main.py
     ```

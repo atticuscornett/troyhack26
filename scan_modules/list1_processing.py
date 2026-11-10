@@ -21,7 +21,7 @@ privacy_classifier = pipeline(
 )
 
 print("Initializing semantic similarity model...")
-import shared_functions as sf
+from . import shared_functions as sf
 
 
 def scan_file(pdf_file_name):
