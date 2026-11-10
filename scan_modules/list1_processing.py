@@ -1,16 +1,15 @@
 # List One Processing
+print("Initializing List One Processing Module...")
+
 
 import pymupdf
 import re
-import json
 import time
 import bisect
 from typing import cast
 
 
 located_flags: list[dict] = []
-
-
 print("Initializing privacy classifier...")
 
 from transformers import pipeline
@@ -23,11 +22,18 @@ privacy_classifier = pipeline(
 print("Initializing semantic similarity model...")
 from . import shared_functions as sf
 
+print("List One Processing Module initialized successfully.")
+
 
 def scan_file(pdf_file_name):
+    """
+    Scans a PDF file for issues identified by list one.
+    Primarily used by the job dispatcher, but can also be run as a standalone script for testing purposes.
+    Input: PDF file name
+    Output: list of issue structures
+    """
     global located_flags
     doc = pymupdf.open(pdf_file_name)
-
 
     # Measure performance
     overall_time_start = time.perf_counter()
@@ -126,11 +132,11 @@ def find_protected_by_law(sentences, page_num):
     ]
 
     anchors = [
-            "Names, ranks, identities, locations, and duty details of personnel " \
+            "Names, ranks, identities, locations, and duty details of personnel "
             "serving in overseas, sensitive, or routinely deployed units.",
-            "Sensitive or confidential information provided by a foreign government " \
+            "Sensitive or confidential information provided by a foreign government "
             "or international partner under an expectation of restricted disclosure.",
-            "Specific security details about critical infrastructure or a particular " \
+            "Specific security details about critical infrastructure or a particular "
             "facility, including its defensive posture, vulnerabilities, or protections."
     ]
 
@@ -224,13 +230,10 @@ def find_internal_deliberations_legal_advice(sentences, page_num):
                 
 def find_personal_privacy(page_text, page_num):
     """
-    This function searches for personal privacy information.
+    This function searches for personal privacy information using OpenAI's privacy-filter model.
     Input: page text, current page number
     Output: list of issue structures
     """
-    
-    # TODO: Compare with Presidio
-    # TODO: Be influenced by the confidence value
 
     sentence_pattern = r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=[.?!])\s+"
 
@@ -345,9 +348,7 @@ def find_wells(sentences, page_num):
             
     return issues
 
-def ai_confirm():
-    print("Not yet implemented")
-
+# Allow the module to be run as a standalone script for testing purposes
 if __name__ == "__main__":
     file_name = input("File Name: ")
     print(scan_file(file_name))
