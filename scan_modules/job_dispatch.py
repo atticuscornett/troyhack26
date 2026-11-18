@@ -1,11 +1,12 @@
-print("Starting job dispatcher...")
+print("----- Setting up job dispatcher -----")
 
-print("Setting up list one processing...")
 from scan_modules import list1_processing as l1p, list2_processing as l2p
 import threading
 import asyncio
 import time
 import random
+
+print("----- Job dispatcher ready -----")
 
 file_statuses = {}
 
@@ -18,7 +19,7 @@ async def run_job(job_file_path):
         "processState": "pending",
         "approvalState": "pending",
         "filePath": job_file_path,
-        "fileName": job_file_path.split("/")[-1],
+        "fileName": job_file_path.split("\\")[-1], # TODO: Better split for cross-platform compatibility
         "issueState": "unknown",
         "issues": []
     }
@@ -51,6 +52,7 @@ async def run_job(job_file_path):
     if len(file_issues) == 0:
         highest_severity = "green"
 
+    print("----- Job completed for file: " + new_file_status["fileName"] + " -----")
     new_file_status["issueState"] = highest_severity
 
 

@@ -38,7 +38,6 @@ def scan_file(pdf_file_name):
     # Measure performance
     overall_time_start = time.perf_counter()
 
-    
     page_num = 0
     for page in doc:
         located_on_this_page = []
@@ -46,7 +45,7 @@ def scan_file(pdf_file_name):
         
         page_text = cast(str, page.get_text("text"))
 
-        print("Processing page " + str(page_num) + "...")
+        print("Processing page " + str(page_num) + " (List 1)...")
         page_time_start = time.perf_counter()
 
         # Split into individual sentences (for highlighting)

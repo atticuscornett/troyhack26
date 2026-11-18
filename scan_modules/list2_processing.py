@@ -1,12 +1,11 @@
 import pymupdf
-import json
 import re
 import time
-import bisect
 
 located_flags: list[dict] = []
 
 from . import shared_functions as sf
+print("List 2 processing module loaded.")
 
 def scan_file(pdf_file_name):
     global located_flags
@@ -21,14 +20,14 @@ def scan_file(pdf_file_name):
         page_num += 1
         page_text = page.get_text()
 
-        print("Processing page " + str(page_num) + "...")
+        print("Processing page " + str(page_num) + " (List 2)...")
         page_time_start = time.perf_counter()
 
         # Split into sentences for highlighting
         sentence_endings = r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s'
         sentences = re.split(sentence_endings, page_text)
 
-        # Quick and dirty stage
+        # Quick and dirty keyword search (currently disabled, as it is too sensitive)
         #located_on_this_page += find_keyword(sentences, page_num)
         located_on_this_page += find_weapons(sentences, page_num)
         located_on_this_page += find_cyber(sentences, page_num)
