@@ -10,7 +10,7 @@ from tkinter import filedialog
 os.environ["SKIP_LLM"] = "1"
 
 from bottle import Bottle, HTTPError, static_file
-from job_dispatch import get_file_statuses, start_job
+from scan_modules.job_dispatch import get_file_statuses, start_job
 
 import eel
 import hashlib
