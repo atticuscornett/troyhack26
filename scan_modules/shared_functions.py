@@ -12,8 +12,7 @@ SKIP_LLM = True  # Set to True to skip LLM semantic analysis until integration i
 
 # Ollama model used to reduce false positives in semantic similarity analysis
 # Model must be installed locally and available to Ollama.
-#OLLAMA_MODEL = "gemma4:12b"
-OLLAMA_MODEL = "qwen3.5:4b"
+OLLAMA_MODEL = "gemma4:12b"
 
 # Hugging Face text embedding model used for semantic similarity
 # (Note: Changing this model may require adjustments to the similarity threshold and window size)
