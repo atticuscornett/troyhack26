@@ -10,10 +10,10 @@ print("----- Job dispatcher ready -----")
 
 file_statuses = {}
 
-currently_proccessing = 0
+currently_processing = 0
 
 async def run_job(job_file_path):
-    global currently_proccessing
+    global currently_processing
 
     new_file_status = {
         "processState": "pending",
@@ -27,10 +27,10 @@ async def run_job(job_file_path):
     file_statuses[job_file_path] = new_file_status
 
 
-    while currently_proccessing >= 3:
+    while currently_processing >= 3:
         await asyncio.sleep(random.random() * 6)  # Wait for a random time between 0 and 6 seconds before checking again
 
-    currently_proccessing += 1
+    currently_processing += 1
 
     new_file_status["processState"] = "processing"
 
@@ -40,7 +40,7 @@ async def run_job(job_file_path):
 
     new_file_status["processState"] = "processed"
     new_file_status["issues"] = file_issues
-    currently_proccessing -= 1
+    currently_processing -= 1
 
     highest_severity = "unknown"
     for issue in file_issues:
