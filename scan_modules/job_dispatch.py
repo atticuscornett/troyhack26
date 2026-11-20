@@ -12,19 +12,20 @@ file_statuses = {}
 
 currently_processing = 0
 
-async def run_job(job_file_path):
+# Async function that actually runs the job, should only be called by start_job() to ensure it runs in a separate thread
+async def run_job(full_file_path):
     global currently_processing
 
     new_file_status = {
         "processState": "pending",
         "approvalState": "pending",
-        "filePath": job_file_path,
-        "fileName": job_file_path.split("\\")[-1], # TODO: Better split for cross-platform compatibility
+        "filePath": full_file_path,
+        "fileName": full_file_path.split("\\")[-1], # TODO: Better split for cross-platform compatibility
         "issueState": "unknown",
         "issues": []
     }
 
-    file_statuses[job_file_path] = new_file_status
+    file_statuses[full_file_path] = new_file_status
 
 
     while currently_processing >= 3:
@@ -34,9 +35,9 @@ async def run_job(job_file_path):
 
     new_file_status["processState"] = "processing"
 
-    file_issues = l1p.scan_file(job_file_path)
+    file_issues = l1p.scan_file(full_file_path)
 
-    file_issues.extend(l2p.scan_file(job_file_path))
+    file_issues.extend(l2p.scan_file(full_file_path))
 
     new_file_status["processState"] = "processed"
     new_file_status["issues"] = file_issues
@@ -60,8 +61,9 @@ def get_file_statuses():
     return list(file_statuses.values())
 
 
-def start_job(job_file_path):
-    thread = threading.Thread(target=lambda: asyncio.run(run_job(job_file_path)))
+# Synchronous wrapper for starting a job in a separate thread
+def start_job(full_file_path):
+    thread = threading.Thread(target=lambda: asyncio.run(run_job(full_file_path)))
     thread.start()
 
 if __name__ == "__main__":
